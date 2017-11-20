@@ -11,35 +11,29 @@ def cli():
 
 
 @cli.command()
-def create():
-    print "project will be created"
+@click.option('--name', default='my-project', help='asdfa')
+@click.option('--s3_bucket', help='asdfa')
+@click.option('--lambda_arn', help='asdfa')
+def create(name, s3_bucket, lambda_arn):
+    print name
+    print s3_bucket
+    print lambda_arn
+    operations.create_package(None)
 
 
-def main(args):
-    operation = args['opr']
-    arguments = args['args']
-    opr_list = opers()
-    if operation in opr_list:
-        opr_list[operation](arguments)
-    else:
-        print "invalid operation :" + operation
+@cli.command()
+@click.option('--lambda_name', help='lambda function name')
+def update(lambda_name):
+    operations.update_lamda(lambda_name)
 
-def opers():
-    opr_list = {}
-    opr_list["create"] = operations.create_package
-    opr_list["test"] = operations.test_package
-    opr_list["build"] = operations.build_package
-    opr_list["push"] = operations.deploy_package
-    return opr_list
 
-if __name__ =='__main__':
-    parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group()
-
-    group.add_argument("--create",help='create a new lambda project')
-    group.add_argument("--build",help='build the project')
-    group.add_argument("--test",help='test the project locally')
-    group.add_argument("--deploy",help='deploy the project')
+@cli.command()
+def push():
+    operations.push_code()
     
-    parser.parse_args()
-    main({"opr":sys.argv[1],"args":sys.argv[2]})
+
+
+@cli.command()
+@click.option('--type', help='test type (mannual/automatic)', default='automatic')
+def test(type):
+    print "project will be build"

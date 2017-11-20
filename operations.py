@@ -3,8 +3,10 @@ import os
 import sys
 
 from distutils.dir_util import copy_tree
-
+import json
 import helper as hlpr
+import boto3
+import zipfile
 
 
 def create_package(args):
@@ -20,7 +22,24 @@ def create_package(args):
     source_path = package_path + os.sep + 'source/'
     copy_tree(source_path,destination_path)
     
-        
+
+def update_lamda(lambda_name):
+    '''
+    '''
+    client = boto3.client('lambda')
+    lambda_information = client.get_function(FunctionName=lambda_name)
+    print lambda_information
+    code_location = lambda_information['Code']['Location']
+    download_file_path = hlpr.download_object(code_location)
+    if hlpr.extract_zipped_code(download_file_path):
+        hlpr.save_lamlight_conf(lambda_information)
+        print "code downloaded you can start updating your lambda"
+    else:
+        print "there is some problem extracting ziped file"
+
+    
+
+    
 def test_package(args):
     '''
     It will test the lambda boiler plate with the code
@@ -47,3 +66,6 @@ def build_package(args):
     cwd = os.path.split(os.getcwd())[1]
     command_list.append((os.system,"zip -r ~/{}.zip .".format(cwd)))
     hlpr.run_dependent_commands(command_list)
+
+def push_code():
+    
