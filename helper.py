@@ -4,6 +4,8 @@ import shutil
 import tempfile
 import urllib
 import zipfile
+import boto3
+import ntpath
 
 def run_dependent_commands(command_list):
     for command in command_list:
@@ -48,3 +50,25 @@ def save_lamlight_conf(lambda_information):
     conf_file = '.lamlight.conf'
     f = open(conf_file,'w')
     json.dump(lambda_information,f)
+
+def create_bucket(bucket_name):
+    res = boto3.resource("s3")
+    
+    if res.Bucket(bucket_name) not in res.buckets.all():
+        s3 = boto3.client("s3")
+        s3.create_bucket(Bucket=bucket_name,CreateBucketConfiguration={
+        'LocationConstraint': 'ap-southeast-1'})
+
+def upload_to_s3(zip_path,bucket_name):
+    s3 = boto3.client('s3')
+    zip_path = os.path.expanduser(zip_path)
+    file_name = ntpath.basename(zip_path)
+    print file_name
+    s3.upload_file(zip_path,bucket_name,file_name)
+    file_url = '%s/%s/%s' % (s3.meta.endpoint_url, bucket_name, file_name)
+    return file_url
+
+def link_lambda(bucket_name,s3_key):
+    client = boto3.client('lambda')
+    lamlight_conf = json.load(open('.lamlight.conf'))
+    client.update_function_code(FunctionName=lamlight_conf['FunctionName'], S3Bucket=bucket_name, S3Key=s3_key)

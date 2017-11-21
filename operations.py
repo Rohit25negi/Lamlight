@@ -7,7 +7,7 @@ import json
 import helper as hlpr
 import boto3
 import zipfile
-
+import ntpath
 
 def create_package(args):
     '''
@@ -52,7 +52,7 @@ def deploy_package(args):
     '''
     pass
 
-def build_package(args):
+def build_package():
     '''
     It will build the .zip package after reducing the size
     '''
@@ -66,6 +66,14 @@ def build_package(args):
     cwd = os.path.split(os.getcwd())[1]
     command_list.append((os.system,"zip -r ~/{}.zip .".format(cwd)))
     hlpr.run_dependent_commands(command_list)
+    return "~/{}.zip".format(cwd)
 
 def push_code():
-    
+    account_id =  boto3.client('sts').get_caller_identity().get('Account')
+    bucket_name = 'lambda-code-{}'.format(account_id)
+    hlpr.create_bucket(bucket_name)
+    zip_path = build_package()
+    s3_url = hlpr.upload_to_s3(zip_path,bucket_name)
+    s3_key = ntpath.basename(zip_path)
+    hlpr.link_lambda(bucket_name,s3_key)
+    print "done pushing"
