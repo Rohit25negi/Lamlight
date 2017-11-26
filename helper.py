@@ -128,9 +128,11 @@ def upload_to_s3(zip_path,bucket_name):
 
 def link_lambda(bucket_name, s3_key):
     """
-
+    It links the code package on s3 bucket to the lambda function.
     :param bucket_name:
+           Name of the bucket where the code package is present
     :param s3_key:
+           Key of the code package
     :return:
     """
     client = boto3.client('lambda')
@@ -139,14 +141,22 @@ def link_lambda(bucket_name, s3_key):
     client.update_function_code(FunctionName=lamlight_conf['FunctionName'],
                                 S3Bucket=bucket_name, S3Key=s3_key)
 
-def create_lambda_function(name, role, subnet_id, security_group,zip_path):
+
+def create_lambda_function(name, role, subnet_id, security_group, zip_path):
     """
+    This function creates the lambda function with the given information
+    passed as the arguments.
 
     :param name:
+            Name of the lambda function
     :param role:
+            IAM Role to be assigned to the lambda function
     :param subnet_id:
+            Subnet to be assgined to the lambda function
     :param security_group:
+            Security group to be assigned to the lambda function
     :param zip_path:
+            zip path which contains the code to be uploaded on lambda function
     :return:
     """
     if not role:
@@ -170,8 +180,10 @@ def create_lambda_function(name, role, subnet_id, security_group,zip_path):
 
 def get_subnet_id():
     """
+    Returns the subnet id for new lambda function
 
-    :return:
+    :return subnet_id:
+        subnet id
     """
     client = boto3.client('ec2')
     subnets = client.describe_subnets()
@@ -179,10 +191,13 @@ def get_subnet_id():
     subnet_id = raw_input('enter the subnet id you want to allocate to your lambda function')
     return subnet_id
 
+
 def default_lambda_details():
     """
+    Returns the default lambda details.
 
-    :return:
+    :return lambda_function_details:
+        default lambda function details for python2.7
     """
     lambda_function_details = dict()
     lambda_function_details['Runtime'] = 'python2.7'
@@ -190,10 +205,13 @@ def default_lambda_details():
 
     return lambda_function_details
 
+
 def get_role():
     """
+    Returns the IAM role ARN to be assigned to the lambda function
 
-    :return:
+    :return role_arn:
+            IAM Role ARN
     """
     client = boto3.client('iam')
     roles = client.list_roles()
@@ -202,10 +220,13 @@ def get_role():
 
     return role_arn
 
+
 def get_security_group():
     """
+    Returns the Security group id to be assigned to aws lambda function
 
-    :return:
+    :return security_group:
+        security group id
     """
     client = boto3.client('ec2')
     security_groups = client.describe_security_groups()
