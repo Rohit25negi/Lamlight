@@ -67,8 +67,9 @@ def download_object(url):
 
 def extract_zipped_code(zipped_code):
     """
-
+    This function extracts the zip file in the CWD.
     :param zipped_code:
+           path to zip file which is to be extracted
     :return:
     """
     with zipfile.ZipFile(zipped_code,'r') as zip_ref:
@@ -77,6 +78,9 @@ def extract_zipped_code(zipped_code):
 
 def save_lamlight_conf(lambda_information):
     """
+    This functions saves the lambda configuration file to the CWD.
+    Lambda cofiguration file contains the information of the lambda
+    function to which current project is associated to.
 
     :param lambda_information:
     :return:
@@ -87,9 +91,13 @@ def save_lamlight_conf(lambda_information):
 
 def create_bucket(bucket_name):
     """
+    This function creates a new bucket with name 'bucket_name' is
+    already not exists.
 
     :param bucket_name:
+           Name of bucket to be created
     :return:
+
     """
     res = boto3.resource("s3")
     if res.Bucket(bucket_name) not in res.buckets.all():
@@ -100,10 +108,15 @@ def create_bucket(bucket_name):
 
 def upload_to_s3(zip_path,bucket_name):
     """
+    This function uploads a file to the bucket with name 'bucket_name'
 
     :param zip_path:
+           zip file to be uploaded to bucket
     :param bucket_name:
-    :return:
+           Name of the bucket to which the file is to be uploaded
+    :return file_url:
+           s3 url of the uploaded file.
+
     """
     s3 = boto3.client('s3')
     zip_path = os.path.expanduser(zip_path)

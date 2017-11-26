@@ -73,7 +73,7 @@ def push():
 @click.option('--type', help='test type (mannual/automatic)', default='automatic')
 def test(type):
     """
-
+    This command will be used to test the current project
     :param type:
     :return:
     """
