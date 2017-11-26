@@ -1,5 +1,4 @@
 
-WORKFLOW_REQUEST_ID = None
 def log_to_cloudwatch(log_marker, message):
     '''
     This functions is used to print the log messages so that they can be logged
@@ -11,6 +10,6 @@ def log_to_cloudwatch(log_marker, message):
         message to be logged
 
     '''
-    wf_message = ':: For workflow request '+str(WORKFLOW_REQUEST_ID)+' ::'
-    print log_marker + wf_message
+    print log_marker,
+    print ' : ',
     print message

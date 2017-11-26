@@ -1,7 +1,6 @@
 import abc
 
 from abc import abstractmethod
-from abc import abstractproperty
 
 
 class Resource(object):

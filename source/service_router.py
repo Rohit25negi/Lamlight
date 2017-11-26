@@ -3,15 +3,11 @@
 # having this module prevent any change in the rest of the code base. Rest of the code
 # base will be indipendent of the deployment.
 import json
-import os
 import sys
 
 import unzip_requirements
 
-import consts_vars
- 
-from db_models import session
-from db_models.initialize import initiate_session
+
 import resources.constants as res_const
 from resources import helper
 from  resources.resource_list import RESOURCES,ROUTES
@@ -65,8 +61,6 @@ def main(event, context):
         response to the caller
     '''
 
-    initiate_session()
-    helper.download_object(res_const.MITHOO_PRIVATE_DATA, res_const.PEM_FILE)
     resource_name = resource(event)
     method_name = http_method(event)
     params = parameters(event)
