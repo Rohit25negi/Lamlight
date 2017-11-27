@@ -7,7 +7,9 @@ import urllib
 import zipfile
 
 import boto3
+from botocore.exceptions import  ClientError
 
+import constants as consts
 
 def run_dependent_commands(command_list):
     """
@@ -85,8 +87,7 @@ def save_lamlight_conf(lambda_information):
     :param lambda_information:
     :return:
     """
-    conf_file = '.lamlight.conf'
-    f = open(conf_file,'w')
+    f = open(consts.LAMLIGHT_CONF,'w')
     json.dump(lambda_information,f)
 
 def create_bucket(bucket_name):
@@ -136,7 +137,7 @@ def link_lambda(bucket_name, s3_key):
     :return:
     """
     client = boto3.client('lambda')
-    lamlight_conf = json.load(open('.lamlight.conf'))
+    lamlight_conf = json.load(open(consts.LAMLIGHT_CONF))
     print json.dumps(lamlight_conf,indent=2)
     client.update_function_code(FunctionName=lamlight_conf['FunctionName'],
                                 S3Bucket=bucket_name, S3Key=s3_key)
@@ -161,6 +162,7 @@ def create_lambda_function(name, role, subnet_id, security_group, zip_path):
     """
     if not role:
         role = get_role()
+
     if not subnet_id:
         subnet_id = get_subnet_id()
 
@@ -185,11 +187,16 @@ def get_subnet_id():
     :return subnet_id:
         subnet id
     """
-    client = boto3.client('ec2')
-    subnets = client.describe_subnets()
-    print json.dumps(subnets,indent=2,default=str)
-    subnet_id = raw_input('enter the subnet id you want to allocate to your lambda function')
-    return subnet_id
+    #TODO get trimmed list
+    try:
+        client = boto3.client('ec2')
+        subnets = client.describe_subnets()
+        print json.dumps(subnets,indent=2,default=str)
+        subnet_id = raw_input('enter the subnet id you want to allocate to your lambda function')
+        return subnet_id
+    except ClientError as error:
+        print error.message
+        return None
 
 
 def default_lambda_details():
@@ -199,6 +206,7 @@ def default_lambda_details():
     :return lambda_function_details:
         default lambda function details for python2.7
     """
+
     lambda_function_details = dict()
     lambda_function_details['Runtime'] = 'python2.7'
     lambda_function_details['Handler'] = 'service_router.main'
@@ -213,6 +221,7 @@ def get_role():
     :return role_arn:
             IAM Role ARN
     """
+    # TODO get trimmed list
     client = boto3.client('iam')
     roles = client.list_roles()
     print json.dumps(roles, indent=2,default=str)
@@ -228,6 +237,7 @@ def get_security_group():
     :return security_group:
         security group id
     """
+    # TODO get trimmed list
     client = boto3.client('ec2')
     security_groups = client.describe_security_groups()
     print json.dumps(security_groups,indent=2,default=str)

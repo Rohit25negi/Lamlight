@@ -5,6 +5,7 @@ import shutil
 
 import boto3
 
+import constants as consts
 import helper as hlpr
 
 
@@ -19,25 +20,32 @@ def create_lambda(name, role, subnet_id, security_group):
     :param security_group:
     :return:
     """
+    print 'Creating project structure'
     create_package(None)
+    print 'Project structure created'
+    print 'Building code zip'
     zip_path = build_package()
+    print 'creating lambda function'
     hlpr.create_lambda_function(name, role, subnet_id, security_group, zip_path)
+    print 'lambda function created. You can start playing with your lambda'
 
-
-def create_package(args):
+def create_package():
     """
     It create a aws lambda boiler plate for new project to work on. Developer
     can use this boilerplate to put their code on lambda function using lamlight.
 
-    :param args:
+    :param:
     :return:
     """
     destination_path = os.getcwd()
     package_path = os.path.dirname(os.path.realpath(__file__))
-    source_path = package_path + os.sep + 'source/'
-    copy_tree(source_path, destination_path)
-    if not os.path.exists(destination_path + os.sep + 'requirements.txt'):
-        open(destination_path + os.sep + 'requirements.txt', 'w').close()
+    SOURCE = 'source/'
+    source_path = package_path + os.sep + SOURCE
+    if copy_tree(source_path, destination_path):
+        if not os.path.exists(destination_path + os.sep + 'requirements.txt'):
+            open(destination_path + os.sep + 'requirements.txt', 'w').close()
+    else:
+        print "project cannot be created"
 
 
 def update_lamda(lambda_name):
@@ -56,9 +64,9 @@ def update_lamda(lambda_name):
     download_file_path = hlpr.download_object(code_location)
     if hlpr.extract_zipped_code(download_file_path):
         hlpr.save_lamlight_conf(lambda_information['Configuration'])
-        print "code downloaded you can start updating your lambda"
+        return True
     else:
-        print "there is some problem extracting ziped file"
+        print False
 
 
 def test_package(args):
@@ -81,9 +89,9 @@ def build_package():
             path of the zip package
 
     """
-    command_list = list()
     os.mkdir("temp_dependencies")
 
+    command_list = list()
     command_list.append((os.system,("pip install --upgrade pip",)))
     command_list.append((os.system,("pip install  --no-cache-dir -r requirements.txt -t temp_dependencies/",)))
     command_list.append((hlpr.remove_test_cases, ('temp_dependencies/',)))
@@ -92,9 +100,9 @@ def build_package():
     shutil.make_archive('.requirements', 'zip', 'temp_dependencies/')
     os.rmdir('temp_dependencies/')
     cwd = os.path.basename(os.getcwd())
-    shutil.make_archive('/tmp/{}'.format(cwd), 'zip', '.')
+    zip_path = "/tmp/{}.zip".format(cwd)
+    shutil.make_archive(zip_path, 'zip', '.')
 
-    zip_path ="/tmp/{}.zip".format(cwd)
     return zip_path
 
 
@@ -107,9 +115,18 @@ def push_code():
     account_id = boto3.client('sts').get_caller_identity().get('Account')
     bucket_name = 'lambda-code-{}'.format(account_id)
     hlpr.create_bucket(bucket_name)
+    print "Building code zip"
     zip_path = build_package()
+    print "Done building code base"
+    print "uploading code base to S3"
     hlpr.upload_to_s3(zip_path, bucket_name)
+    print "Code is uploaded"
     s3_key = ntpath.basename(zip_path)
-    if os.path.exists('.lamlight.conf'):
+    if os.path.exists(consts.LAMLIGHT_CONF):
         hlpr.link_lambda(bucket_name, s3_key)
-    print "done pushing"
+        return True
+    else:
+        print "Current project is not a lamlight project"
+        return False
+
+

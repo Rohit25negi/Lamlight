@@ -55,8 +55,9 @@ def update(lambda_name):
             name of the lambda function which is to be updated
     :return:
     """
-    print "Downloading your code"
+    print "Downloading your codebase from :{}".format(lambda_name)
     operations.update_lamda(lambda_name)
+    print "Downloaded the codebase. You can now play with your lambda"
 
 
 @cli.command()
@@ -66,7 +67,9 @@ def push():
     is associated with current project.
     :return:
     """
+    print "Iniating code pushing"
     operations.push_code()
+    print "lambda has been updated with the latest code."
 
 
 @cli.command()
