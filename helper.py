@@ -191,8 +191,17 @@ def get_subnet_id():
     try:
         client = boto3.client('ec2')
         subnets = client.describe_subnets()
-        print json.dumps(subnets,indent=2,default=str)
-        subnet_id = raw_input('enter the subnet id you want to allocate to your lambda function')
+        trimmed_subnets_list = [{"SubnetId":subnet.get("SubnetId"),
+                                 "VpcId":subnet["VpcId"],
+                                 "Tags":subnet["Tags"]}
+                                for subnet in subnets.get("Subnets")]
+        for subnet in trimmed_subnets_list:
+            print "SUBNET ID = {}".format(subnet["SubnetId"])
+            print "VPC ID = {}".format(subnet["VpcId"])
+            print "TAGS = {}".format(subnet["Tags"])
+            print ""
+
+        subnet_id = raw_input('enter the subnet id : ')
         return subnet_id
     except ClientError as error:
         print error.message
@@ -224,8 +233,13 @@ def get_role():
     # TODO get trimmed list
     client = boto3.client('iam')
     roles = client.list_roles()
-    print json.dumps(roles, indent=2,default=str)
-    role_arn = raw_input('give the role arn you want to give to you lambda function')
+
+    trimed_roles_list = [{'RoleName':role['RoleName'],'Arn':role['Arn']} for role in roles.get('Roles')]
+    for role in trimed_roles_list:
+        print "RoleName = {}".format(role.get("RoleName"))
+        print "Arn = {}".format(role.get("Arn"))
+        print ""
+    role_arn = raw_input('give the role Arn : ')
 
     return role_arn
 
@@ -240,6 +254,14 @@ def get_security_group():
     # TODO get trimmed list
     client = boto3.client('ec2')
     security_groups = client.describe_security_groups()
-    print json.dumps(security_groups,indent=2,default=str)
-    security_group = raw_input("security group id  you want to assign to your lambda function")
+    trimmed_sg_list = [{"GroupName":sg["GroupName"],
+                        "GroupId":sg["GroupId"]}
+                       for sg in security_groups['SecurityGroups']]
+
+    for sg in trimmed_sg_list:
+        print "GROUP NAME = {}".format(sg['GroupName'])
+        print "GROUP ID = {}".format(sg["GroupId"])
+        print ""
+
+    security_group = raw_input("security group id : ")
     return security_group

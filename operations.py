@@ -21,7 +21,7 @@ def create_lambda(name, role, subnet_id, security_group):
     :return:
     """
     print 'Creating project structure'
-    create_package(None)
+    create_package()
     print 'Project structure created'
     print 'Building code zip'
     zip_path = build_package()
