@@ -1,0 +1,1 @@
+LAMLIGHT_CONF='.lamlight.conf'
