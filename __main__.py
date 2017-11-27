@@ -80,5 +80,4 @@ def test(type):
     :param type:
     :return:
     """
-    #TODO fill this function to test the lambda function code
     pass

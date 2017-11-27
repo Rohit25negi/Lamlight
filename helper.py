@@ -11,6 +11,7 @@ from botocore.exceptions import  ClientError
 
 import constants as consts
 
+
 def run_dependent_commands(command_list):
     """
     This fucntions executes a list of dependent commands. In which,
@@ -187,7 +188,6 @@ def get_subnet_id():
     :return subnet_id:
         subnet id
     """
-    #TODO get trimmed list
     try:
         client = boto3.client('ec2')
         subnets = client.describe_subnets()
@@ -230,7 +230,6 @@ def get_role():
     :return role_arn:
             IAM Role ARN
     """
-    # TODO get trimmed list
     client = boto3.client('iam')
     roles = client.list_roles()
 
@@ -251,7 +250,6 @@ def get_security_group():
     :return security_group:
         security group id
     """
-    # TODO get trimmed list
     client = boto3.client('ec2')
     security_groups = client.describe_security_groups()
     trimmed_sg_list = [{"GroupName":sg["GroupName"],
