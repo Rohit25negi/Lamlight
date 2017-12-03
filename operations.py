@@ -17,11 +17,17 @@ def create_lambda(name, role, subnet_id, security_group):
     This function creates the lambda is used to create a new aws lambda
     project.
 
-    :param name:
-    :param role:
-    :param subnet_id:
-    :param security_group:
-    :return:
+    Parameters:
+    ------------
+    name: str
+        name of the lambda function
+    role: str
+        IAM role ARN to be assigned to lambda function
+    subnet_id: str
+        subnet id to be assigned to lambda function
+    security_group: str
+        security group id to be assigned to lambda function
+    
     """
     if hlpr.lambda_function_exists(name):
         raise errors.AWSError(" Lambda function with '{}' name already exists.".format(name))
@@ -41,8 +47,6 @@ def create_package():
     It create a aws lambda boiler plate for new project to work on. Developer
     can use this boilerplate to put their code on lambda function using lamlight.
 
-    :param:
-    :return:
     """
     destination_path = os.getcwd()
     package_path = os.path.dirname(os.path.realpath(__file__))
@@ -61,9 +65,10 @@ def update_lamda(lambda_name):
     This function downloads the code running on a given lambda function.
     This code is downloaded in CWD.
 
-    :param lambda_name:
-            Name of the lambda function
-    :return:
+    Parameters
+    -----------
+    lambda_name :str
+        Lambda function name
     """
     try:
         if not hlpr.lambda_function_exists(lambda_name):
@@ -88,6 +93,13 @@ def update_lamda(lambda_name):
 
 def connect_lambda(lambda_name):
     """
+    It get the information of a lambda function and save the configuration
+    file in the current project.
+
+    Parameters
+    -----------
+    lambda_name: str
+        name of the lambda function
     """
     try:
         if not hlpr.lambda_function_exists(lambda_name):
@@ -107,8 +119,10 @@ def build_package():
     Zip package prepared by this function is stored in /tmp/<project-name>.zip
     location.
 
-    :return zip_path:
-            path of the zip package
+    Returns
+    --------
+    zip_path: str
+        path of the zip package
 
     """
     os.mkdir("temp_dependencies")
@@ -135,7 +149,7 @@ def push_code():
     """
     This functions pushes the current state of the working project
     to lambda function.
-    :return:
+
     """
     if not os.path.exists(consts.LAMLIGHT_CONF):
         raise errors.NoLamlightProject(consts.NO_LAMLIGHT_PROJECT)

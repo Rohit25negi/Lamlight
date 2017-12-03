@@ -1,5 +1,4 @@
 import configparser
-import json
 import ntpath
 import os
 import shutil
@@ -8,7 +7,6 @@ import urllib
 import zipfile
 
 import boto3
-from botocore.exceptions import ClientError
 
 import constants as consts
 import errors
