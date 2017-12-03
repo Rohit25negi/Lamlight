@@ -1,5 +1,5 @@
 # lamlight
-lamlight is a python package for serverless application. It abstracts out all the step needes to develop a servless application for AWS lambda.
+lamlight is a python package for serverless application. It abstracts out all the step needed to develop a servless application for AWS lambda.
 
 ### Features
 * creating _boilerplate_ for AWS lambda function
