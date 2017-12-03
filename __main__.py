@@ -6,6 +6,7 @@ import errors
 from  logger import logger
 import operations
 
+
 @click.group()
 def cli():
     """

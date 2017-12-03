@@ -18,15 +18,31 @@ def run_dependent_commands(command_list):
     each command is dependent on the success of its previous command.
     If one command fails, remaining commands are not executed.
 
-    :param command_list:
-        list of commands and their arguments
-    :return:
+    Parameters
+    -----------
+    command_list: list
+        list of tuples in which each tuple contains the following content:
+            (function_to_execute,arguments_to_pass)
+
     """
     for command in command_list:
         assert not command[0](*command[1])
 
 
 def lambda_function_exists(name):
+    """
+    It checks whether the lambda function with the given name exists or not.
+
+    Parameters
+    -----------
+    name : str:
+        name of the lambda function
+    
+    Returns
+    --------
+    bool:
+        True if the lambda function with the given name exists. Else, False
+    """
     try:
         client = boto3.client('lambda')
         client.get_function(FunctionName=name)
@@ -34,13 +50,21 @@ def lambda_function_exists(name):
     except Exception:
         return False
 
+
 def remove_test_cases(path):
     """
     This functions is used to remove the test cases from the heavy
     pip packages.
-    :param path:
-           path from which the test cases are to be removed
-    :return:
+
+    Parameters
+    -----------
+    path : str
+        path from where the test cases are to be removed
+
+    Returns
+    --------
+    int:
+        0 if deletion runs successfully. Else, 1.
     """
     for root, dirs, files in os.walk(path):
         for dir in dirs:
@@ -53,16 +77,20 @@ def remove_test_cases(path):
                     return 1
     return 0
 
-            
+
 def download_object(url):
     """
     This function is used to download the code package from
     a given url.
 
-    :param url:
-           url from which file is to be downloaded
+    Parameters
+    -----------
+    url: str
+        url from where the object is to be downloaded
 
-    :return download_file_path:
+    Returns
+    --------
+    download_file_path: str
             path where the code package is downloaded
     """
     temp_dir_path = tempfile.mkdtemp(dir='/tmp')
@@ -74,9 +102,11 @@ def download_object(url):
 def extract_zipped_code(zipped_code):
     """
     This function extracts the zip file in the CWD.
-    :param zipped_code:
+
+    Parameters
+    -----------
+    zipped_code: str
            path to zip file which is to be extracted
-    :return:
     """
     with zipfile.ZipFile(zipped_code,'r') as zip_ref:
         zip_ref.extractall()
@@ -88,8 +118,10 @@ def save_lamlight_conf(lambda_information):
     Lambda cofiguration file contains the information of the lambda
     function to which current project is associated to.
 
-    :param lambda_information:
-    :return:
+    Parameters
+    -----------
+    lambda_information: dict
+        dictionary which contains the information about a lambda function
     """
 
     fout = open(consts.LAMLIGHT_CONF,'w')
@@ -104,9 +136,10 @@ def create_bucket(bucket_name):
     This function creates a new bucket with name 'bucket_name' is
     already not exists.
 
-    :param bucket_name:
+    Parameters
+    -----------
+    bucket_name: str
            Name of bucket to be created
-    :return:
 
     """
     res = boto3.resource("s3")
@@ -122,11 +155,13 @@ def upload_to_s3(zip_path,bucket_name):
     """
     This function uploads a file to the bucket with name 'bucket_name'
 
-    :param zip_path:
+    Parameters
+    -----------
+    zip_path: str
            zip file to be uploaded to bucket
-    :param bucket_name:
+    bucket_name: str
            Name of the bucket to which the file is to be uploaded
-    :return file_url:
+    file_url: str
            s3 url of the uploaded file.
 
     """
@@ -140,11 +175,14 @@ def upload_to_s3(zip_path,bucket_name):
 def link_lambda(bucket_name, s3_key):
     """
     It links the code package on s3 bucket to the lambda function.
-    :param bucket_name:
+
+    Parameters
+    -----------
+    bucket_name: str
            Name of the bucket where the code package is present
-    :param s3_key:
+    s3_key: str
            Key of the code package
-    :return:
+
     """
     client = boto3.client('lambda')
     parser = configparser.ConfigParser()
@@ -158,15 +196,17 @@ def create_lambda_function(name, role, subnet_id, security_group, zip_path):
     This function creates the lambda function with the given information
     passed as the arguments.
 
-    :param name:
+    Parameters
+    -----------
+    name: str
             Name of the lambda function
-    :param role:
+    role: str
             IAM Role to be assigned to the lambda function
-    :param subnet_id:
+    subnet_id: str
             Subnet to be assgined to the lambda function
-    :param security_group:
+    security_group: str
             Security group to be assigned to the lambda function
-    :param zip_path:
+    zip_path: str
             zip path which contains the code to be uploaded on lambda function
     :return:
     """
@@ -195,7 +235,9 @@ def get_subnet_id():
     """
     Returns the subnet id for new lambda function
 
-    :return subnet_id:
+    Returns
+    --------
+    subnet_id: str
         subnet id
     """
     client = boto3.client('ec2')
@@ -220,7 +262,9 @@ def default_lambda_details():
     """
     Returns the default lambda details.
 
-    :return lambda_function_details:
+    Returns
+    --------
+    lambda_function_details: dict
         default lambda function details for python2.7
     """
 
@@ -235,7 +279,9 @@ def get_role():
     """
     Returns the IAM role ARN to be assigned to the lambda function
 
-    :return role_arn:
+    Returns
+    --------
+    role_arn: str
             IAM Role ARN
     """
     client = boto3.client('iam')
@@ -257,7 +303,9 @@ def get_security_group():
     """
     Returns the Security group id to be assigned to aws lambda function
 
-    :return security_group:
+    Returns
+    --------
+    security_group: str
         security group id
     """
     client = boto3.client('ec2')
