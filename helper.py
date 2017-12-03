@@ -1,3 +1,4 @@
+import configparser
 import json
 import ntpath
 import os
@@ -7,9 +8,10 @@ import urllib
 import zipfile
 
 import boto3
-from botocore.exceptions import  ClientError
+from botocore.exceptions import ClientError
 
 import constants as consts
+import errors
 
 
 def run_dependent_commands(command_list):
@@ -24,7 +26,15 @@ def run_dependent_commands(command_list):
     """
     for command in command_list:
         assert not command[0](*command[1])
-    
+
+
+def lambda_function_exists(name):
+    try:
+        client = boto3.client('lambda')
+        client.get_function(FunctionName=name)
+        return True
+    except Exception:
+        return False
 
 def remove_test_cases(path):
     """
@@ -35,18 +45,13 @@ def remove_test_cases(path):
     :return:
     """
     for root, dirs, files in os.walk(path):
-        print root
-        print dirs
-
         for dir in dirs:
             path=root+os.sep+dir
             
             if os.path.isdir(path) and 'tests' in dir: 
                 try:
-                    print "to delete"
                     shutil.rmtree(path)
                 except Exception as err:
-                    print err.message
                     return 1
     return 0
 
@@ -77,7 +82,7 @@ def extract_zipped_code(zipped_code):
     """
     with zipfile.ZipFile(zipped_code,'r') as zip_ref:
         zip_ref.extractall()
-    return True
+    
 
 def save_lamlight_conf(lambda_information):
     """
@@ -88,8 +93,13 @@ def save_lamlight_conf(lambda_information):
     :param lambda_information:
     :return:
     """
-    f = open(consts.LAMLIGHT_CONF,'w')
-    json.dump(lambda_information,f)
+
+    fout = open(consts.LAMLIGHT_CONF,'w')
+    conf_parser = configparser.ConfigParser()
+    conf_parser.add_section("LAMBDA_FUNCTION")
+    conf_parser["LAMBDA_FUNCTION"]["funtionname"] = lambda_information['FunctionName']
+    conf_parser.write(fout)
+
 
 def create_bucket(bucket_name):
     """
@@ -102,10 +112,12 @@ def create_bucket(bucket_name):
 
     """
     res = boto3.resource("s3")
+    my_session = boto3.session.Session()
+    my_region = my_session.region_name
     if res.Bucket(bucket_name) not in res.buckets.all():
         s3 = boto3.client("s3")
         s3.create_bucket(Bucket=bucket_name,CreateBucketConfiguration={
-        'LocationConstraint': 'ap-southeast-1'})
+        'LocationConstraint': my_region})
 
 
 def upload_to_s3(zip_path,bucket_name):
@@ -123,7 +135,6 @@ def upload_to_s3(zip_path,bucket_name):
     s3 = boto3.client('s3')
     zip_path = os.path.expanduser(zip_path)
     file_name = ntpath.basename(zip_path)
-    print file_name
     s3.upload_file(zip_path,bucket_name,file_name)
     file_url = '%s/%s/%s' % (s3.meta.endpoint_url, bucket_name, file_name)
     return file_url
@@ -138,9 +149,9 @@ def link_lambda(bucket_name, s3_key):
     :return:
     """
     client = boto3.client('lambda')
-    lamlight_conf = json.load(open(consts.LAMLIGHT_CONF))
-    print json.dumps(lamlight_conf,indent=2)
-    client.update_function_code(FunctionName=lamlight_conf['FunctionName'],
+    parser = configparser.ConfigParser()
+    parser.read(consts.LAMLIGHT_CONF)
+    client.update_function_code(FunctionName=parser['LAMBDA_FUNTION']['funtionname'],
                                 S3Bucket=bucket_name, S3Key=s3_key)
 
 
@@ -161,24 +172,25 @@ def create_lambda_function(name, role, subnet_id, security_group, zip_path):
             zip path which contains the code to be uploaded on lambda function
     :return:
     """
-    if not role:
-        role = get_role()
+    try:
+        if not role:
+            role = get_role()
+        if not subnet_id: 
+            subnet_id = get_subnet_id()
+        if not security_group:
+            security_group = get_security_group()
 
-    if not subnet_id:
-        subnet_id = get_subnet_id()
-
-    if not security_group:
-        security_group = get_security_group()
-
-    client = boto3.client('lambda')
-    lambda_details = default_lambda_details()
-    lambda_details['FunctionName'] = name
-    lambda_details['Role'] = role
-    lambda_details['VpcConfig'] = {'SubnetIds':[subnet_id],'SecurityGroupIds':[security_group]}
-    lambda_details['Code'] = {'ZipFile':open(zip_path).read()}
-
-    lambda_info = client.create_function(**lambda_details)
-    save_lamlight_conf(lambda_info)
+        client = boto3.client('lambda')
+        lambda_details = default_lambda_details()
+        lambda_details['FunctionName'] = name
+        lambda_details['Role'] = role
+        lambda_details['VpcConfig'] = {'SubnetIds':[subnet_id],'SecurityGroupIds':[security_group]}
+        lambda_details['Code'] = {'ZipFile':open(zip_path).read()}
+        lambda_info = client.create_function(**lambda_details)
+    
+        return lambda_info
+    except Exception as error:
+        raise errors.AWSError(error.message)
 
 
 def get_subnet_id():
@@ -188,24 +200,22 @@ def get_subnet_id():
     :return subnet_id:
         subnet id
     """
-    try:
-        client = boto3.client('ec2')
-        subnets = client.describe_subnets()
-        trimmed_subnets_list = [{"SubnetId":subnet.get("SubnetId"),
+    client = boto3.client('ec2')
+    subnets = client.describe_subnets()
+    trimmed_subnets_list = [{"SubnetId":subnet.get("SubnetId"),
                                  "VpcId":subnet["VpcId"],
                                  "Tags":subnet["Tags"]}
                                 for subnet in subnets.get("Subnets")]
-        for subnet in trimmed_subnets_list:
-            print "SUBNET ID = {}".format(subnet["SubnetId"])
-            print "VPC ID = {}".format(subnet["VpcId"])
-            print "TAGS = {}".format(subnet["Tags"])
-            print ""
-
-        subnet_id = raw_input('enter the subnet id : ')
-        return subnet_id
-    except ClientError as error:
-        print error.message
-        return None
+    print "-----------------------------SELECT THE SUBNET---------------------------------"
+    for subnet in trimmed_subnets_list:
+        print "SUBNET ID = {}".format(subnet["SubnetId"])
+        print "VPC ID = {}".format(subnet["VpcId"])
+        print "TAGS = {}".format(subnet["Tags"])
+        print ""
+    print "-------------------------------------------------------------------------------"
+    subnet_id = raw_input('enter the subnet id : ').strip()
+    return subnet_id
+        
 
 
 def default_lambda_details():
@@ -234,11 +244,13 @@ def get_role():
     roles = client.list_roles()
 
     trimed_roles_list = [{'RoleName':role['RoleName'],'Arn':role['Arn']} for role in roles.get('Roles')]
+    print "-----------------------------SELECT THE ROLE----------------------------------"
     for role in trimed_roles_list:
         print "RoleName = {}".format(role.get("RoleName"))
         print "Arn = {}".format(role.get("Arn"))
         print ""
-    role_arn = raw_input('give the role Arn : ')
+    print "------------------------------------------------------------------------------"
+    role_arn = raw_input('give the role Arn : ').strip()
 
     return role_arn
 
@@ -256,10 +268,11 @@ def get_security_group():
                         "GroupId":sg["GroupId"]}
                        for sg in security_groups['SecurityGroups']]
 
+    print "-----------------------------SELECT THE SECURITY GROUP-------------------------"
     for sg in trimmed_sg_list:
         print "GROUP NAME = {}".format(sg['GroupName'])
         print "GROUP ID = {}".format(sg["GroupId"])
         print ""
-
-    security_group = raw_input("security group id : ")
+    print "--------------------------------------------------------------------------------"
+    security_group = raw_input("security group id : ").strip()
     return security_group

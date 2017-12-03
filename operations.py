@@ -2,11 +2,14 @@ from distutils.dir_util import copy_tree
 import ntpath
 import os
 import shutil
+import traceback
 
 import boto3
 
 import constants as consts
+import errors
 import helper as hlpr
+from logger import logger
 
 
 def create_lambda(name, role, subnet_id, security_group):
@@ -20,14 +23,18 @@ def create_lambda(name, role, subnet_id, security_group):
     :param security_group:
     :return:
     """
-    print 'Creating project structure'
+    if hlpr.lambda_function_exists(name):
+        raise errors.AWSError(" Lambda function with '{}' name already exists.".format(name))
+
+    logger.info('Creating Scaffolding for lambda function.')
     create_package()
-    print 'Project structure created'
-    print 'Building code zip'
+    logger.info('Building Zip.')
     zip_path = build_package()
-    print 'creating lambda function'
-    hlpr.create_lambda_function(name, role, subnet_id, security_group, zip_path)
-    print 'lambda function created. You can start playing with your lambda'
+    logger.info('Creating lambda function.')
+    lambda_info = hlpr.create_lambda_function(name, role, subnet_id, security_group, zip_path)
+    logger.info('lambda function created. You can start playing with your lambda')
+    hlpr.save_lamlight_conf(lambda_info)
+
 
 def create_package():
     """
@@ -41,11 +48,12 @@ def create_package():
     package_path = os.path.dirname(os.path.realpath(__file__))
     SOURCE = 'source/'
     source_path = package_path + os.sep + SOURCE
+
     if copy_tree(source_path, destination_path):
         if not os.path.exists(destination_path + os.sep + 'requirements.txt'):
             open(destination_path + os.sep + 'requirements.txt', 'w').close()
     else:
-        print "project cannot be created"
+        raise errors.PackagingError(consts.SCAFFOLDING_ERROR)
 
 
 def update_lamda(lambda_name):
@@ -57,26 +65,40 @@ def update_lamda(lambda_name):
             Name of the lambda function
     :return:
     """
-    client = boto3.client('lambda')
-    lambda_information = client.get_function(FunctionName=lambda_name)
+    try:
+        if not hlpr.lambda_function_exists(lambda_name):
+            raise errors.AWSError(consts.NO_LAMBDA_FUNCTION.format(lambda_name))
 
-    code_location = lambda_information['Code']['Location']
-    download_file_path = hlpr.download_object(code_location)
-    if hlpr.extract_zipped_code(download_file_path):
+        logger.info('connecting to aws.')
+        client = boto3.client('lambda')
+        lambda_information = client.get_function(FunctionName=lambda_name)
+
+        logger.info('downloading code base.')
+        code_location = lambda_information['Code']['Location']
+        download_file_path = hlpr.download_object(code_location)
+        logger.info('Extracting code.')
+    except Exception as error:
+        raise errors.AWSError(error.message)
+    try:
+        hlpr.extract_zipped_code(download_file_path)
         hlpr.save_lamlight_conf(lambda_information['Configuration'])
-        return True
-    else:
-        print False
+    except Exception as error:
+        raise errors.PackagingError(consts.CODE_PULLING_ERROR.format(lambda_name))
+    
 
-
-def test_package(args):
+def connect_lambda(lambda_name):
     """
-
-    :param args:
-    :return:
     """
-    #TODO to allow developer to test his/her lambda function locally
-    pass
+    try:
+        if not hlpr.lambda_function_exists(lambda_name):
+            raise errors.AWSError(consts.NO_LAMBDA_FUNCTION.format(lambda_name))    
+        logger.info('connecting to aws.')
+        client = boto3.client('lambda')
+        lambda_information = client.get_function(FunctionName=lambda_name)
+        hlpr.save_lamlight_conf(lambda_information['Configuration'])
+        logger.info("Your project is connected to '{}' lambda function".format(lambda_name))
+    except Exception as error:
+        raise errors.PackagingError(error.message)
 
 
 def build_package():
@@ -90,18 +112,21 @@ def build_package():
 
     """
     os.mkdir("temp_dependencies")
-
+    
     command_list = list()
     command_list.append((os.system,("pip install --upgrade pip",)))
     command_list.append((os.system,("pip install  --no-cache-dir -r requirements.txt -t temp_dependencies/",)))
     command_list.append((hlpr.remove_test_cases, ('temp_dependencies/',)))
     hlpr.run_dependent_commands(command_list)
-
-    shutil.make_archive('.requirements', 'zip', 'temp_dependencies/')
-    os.rmdir('temp_dependencies/')
-    cwd = os.path.basename(os.getcwd())
-    zip_path = "/tmp/{}.zip".format(cwd)
-    shutil.make_archive(zip_path, 'zip', '.')
+    try:
+        shutil.make_archive('.requirements', 'zip', 'temp_dependencies/')
+        os.rmdir('temp_dependencies/')
+        cwd = os.path.basename(os.getcwd())
+        zip_path = "/tmp/{}".format(cwd)
+        shutil.make_archive(zip_path, 'zip', '.')
+        zip_path+='.zip'
+    except Exception:
+        raise errors.PackagingError(consts.PACKAGIN_ERROR)
 
     return zip_path
 
@@ -112,21 +137,23 @@ def push_code():
     to lambda function.
     :return:
     """
+    if not os.path.exists(consts.LAMLIGHT_CONF):
+        raise errors.NoLamlightProject(consts.NO_LAMLIGHT_PROJECT)
+    
+    logger.info('Getting aws user identity')
     account_id = boto3.client('sts').get_caller_identity().get('Account')
+
     bucket_name = 'lambda-code-{}'.format(account_id)
     hlpr.create_bucket(bucket_name)
-    print "Building code zip"
+
+    logger.info('building zip')
     zip_path = build_package()
-    print "Done building code base"
-    print "uploading code base to S3"
+    logger.info("uploading code base to S3")
     hlpr.upload_to_s3(zip_path, bucket_name)
-    print "Code is uploaded"
+
     s3_key = ntpath.basename(zip_path)
-    if os.path.exists(consts.LAMLIGHT_CONF):
-        hlpr.link_lambda(bucket_name, s3_key)
-        return True
-    else:
-        print "Current project is not a lamlight project"
-        return False
+    hlpr.link_lambda(bucket_name, s3_key)
+    logger.info("Lambda updation complete")
+
 
 
