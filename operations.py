@@ -75,7 +75,7 @@ def update_lamda(lambda_name):
             raise errors.AWSError(consts.NO_LAMBDA_FUNCTION.format(lambda_name))
 
         logger.info('connecting to aws.')
-        client = boto3.client('lambda')
+        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
         lambda_information = client.get_function(FunctionName=lambda_name)
 
         logger.info('downloading code base.')
@@ -105,7 +105,7 @@ def connect_lambda(lambda_name):
         if not hlpr.lambda_function_exists(lambda_name):
             raise errors.AWSError(consts.NO_LAMBDA_FUNCTION.format(lambda_name))    
         logger.info('connecting to aws.')
-        client = boto3.client('lambda')
+        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
         lambda_information = client.get_function(FunctionName=lambda_name)
         hlpr.save_lamlight_conf(lambda_information['Configuration'])
         logger.info("Your project is connected to '{}' lambda function".format(lambda_name))
@@ -155,7 +155,7 @@ def push_code():
         raise errors.NoLamlightProject(consts.NO_LAMLIGHT_PROJECT)
     
     logger.info('Getting aws user identity')
-    account_id = boto3.client('sts').get_caller_identity().get('Account')
+    account_id = boto3.client('sts',region_name=os.getenv('AWS_REGION')).get_caller_identity().get('Account')
 
     bucket_name = 'lambda-code-{}'.format(account_id)
     hlpr.create_bucket(bucket_name)

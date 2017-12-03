@@ -44,7 +44,7 @@ def lambda_function_exists(name):
         True if the lambda function with the given name exists. Else, False
     """
     try:
-        client = boto3.client('lambda')
+        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
         client.get_function(FunctionName=name)
         return True
     except Exception:
@@ -145,8 +145,11 @@ def create_bucket(bucket_name):
     res = boto3.resource("s3")
     my_session = boto3.session.Session()
     my_region = my_session.region_name
+    if not my_region:
+        my_region = os.getenv('AWS_REGION')
+
     if res.Bucket(bucket_name) not in res.buckets.all():
-        s3 = boto3.client("s3")
+        s3 = boto3.client("s3",region_name=os.getenv('AWS_REGION'))
         s3.create_bucket(Bucket=bucket_name,CreateBucketConfiguration={
         'LocationConstraint': my_region})
 
@@ -165,7 +168,7 @@ def upload_to_s3(zip_path,bucket_name):
            s3 url of the uploaded file.
 
     """
-    s3 = boto3.client('s3')
+    s3 = boto3.client('s3',region_name=os.getenv('AWS_REGION'))
     zip_path = os.path.expanduser(zip_path)
     file_name = ntpath.basename(zip_path)
     s3.upload_file(zip_path,bucket_name,file_name)
@@ -184,7 +187,7 @@ def link_lambda(bucket_name, s3_key):
            Key of the code package
 
     """
-    client = boto3.client('lambda')
+    client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
     parser = configparser.ConfigParser()
     parser.read(consts.LAMLIGHT_CONF)
     client.update_function_code(FunctionName=parser['LAMBDA_FUNTION']['funtionname'],
@@ -218,7 +221,7 @@ def create_lambda_function(name, role, subnet_id, security_group, zip_path):
         if not security_group:
             security_group = get_security_group()
 
-        client = boto3.client('lambda')
+        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
         lambda_details = default_lambda_details()
         lambda_details['FunctionName'] = name
         lambda_details['Role'] = role
@@ -240,7 +243,7 @@ def get_subnet_id():
     subnet_id: str
         subnet id
     """
-    client = boto3.client('ec2')
+    client = boto3.client('ec2',region_name=os.getenv('AWS_REGION'))
     subnets = client.describe_subnets()
     trimmed_subnets_list = [{"SubnetId":subnet.get("SubnetId"),
                                  "VpcId":subnet["VpcId"],
@@ -284,7 +287,7 @@ def get_role():
     role_arn: str
             IAM Role ARN
     """
-    client = boto3.client('iam')
+    client = boto3.client('iam',region_name=os.getenv('AWS_REGION'))
     roles = client.list_roles()
 
     trimed_roles_list = [{'RoleName':role['RoleName'],'Arn':role['Arn']} for role in roles.get('Roles')]
@@ -308,7 +311,7 @@ def get_security_group():
     security_group: str
         security group id
     """
-    client = boto3.client('ec2')
+    client = boto3.client('ec2',region_name=os.getenv('AWS_REGION'))
     security_groups = client.describe_security_groups()
     trimmed_sg_list = [{"GroupName":sg["GroupName"],
                         "GroupId":sg["GroupId"]}

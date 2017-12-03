@@ -1,5 +1,7 @@
+import os
 import traceback
 
+import boto3
 import click
 
 import errors
@@ -23,6 +25,10 @@ def cli():
     4) Live updating the existing lambda.
 
     """
+    my_session = boto3.session.Session()
+    my_region = my_session.region_name
+    if not my_region and not os.getenv('AWS_REGION'):
+        logger.error('No region specified set AWS_REGION to aws region')
     pass
 
 
