@@ -125,7 +125,8 @@ def build_package():
         path of the zip package
 
     """
-    os.mkdir("temp_dependencies")
+    shutil.rmtree('temp_dependencies/')
+    os.makedirs("temp_dependencies/")
     
     command_list = list()
     command_list.append((os.system,("pip install --upgrade pip",)))
@@ -134,7 +135,7 @@ def build_package():
     hlpr.run_dependent_commands(command_list)
     try:
         shutil.make_archive('.requirements', 'zip', 'temp_dependencies/')
-        os.rmdir('temp_dependencies/')
+        shutil.rmtree('temp_dependencies/')
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')
