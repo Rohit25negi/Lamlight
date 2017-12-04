@@ -125,7 +125,8 @@ def build_package():
         path of the zip package
 
     """
-    shutil.rmtree('temp_dependencies/')
+    if os.path.exists('temp_dependencies/'):
+        shutil.rmtree('temp_dependencies/')
     os.makedirs("temp_dependencies/")
     
     command_list = list()
@@ -134,7 +135,8 @@ def build_package():
     command_list.append((hlpr.remove_test_cases, ('temp_dependencies/',)))
     hlpr.run_dependent_commands(command_list)
     try:
-        shutil.make_archive('.requirements', 'zip', 'temp_dependencies/')
+        os.system('cd temp_dependencies && zip -r ../.requirements.zip .')
+        #shutil.make_archive('.requirements', 'zip', 'temp_dependencies/')
         shutil.rmtree('temp_dependencies/')
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
