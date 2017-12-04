@@ -190,7 +190,7 @@ def link_lambda(bucket_name, s3_key):
     client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
     parser = configparser.ConfigParser()
     parser.read(consts.LAMLIGHT_CONF)
-    client.update_function_code(FunctionName=parser['LAMBDA_FUNTION']['funtionname'],
+    client.update_function_code(FunctionName=parser['LAMBDA_FUNCTION']['funtionname'],
                                 S3Bucket=bucket_name, S3Key=s3_key)
 
 
