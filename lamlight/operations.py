@@ -1,15 +1,26 @@
-from distutils.dir_util import copy_tree
+"""
+Module defines the functions for various  lamlight operations.
+
+This modules contains the functions for the following lamlight operations:
+    1) creating new lamlight project
+    2) updating existing lambda code
+    3) connecting existing lambda function
+    4) pushing the changed code directly to lambda function
+
+"""
 import ntpath
 import os
 import shutil
-import traceback
 
 import boto3
 
-import constants as consts
-import errors
-import helper as hlpr
-from logger import logger
+from lamlight.aws_resources import lambda_utils
+from lamlight.aws_resources import s3_utils
+
+from lamlight import constants as consts
+from lamlight import errors
+from lamlight import helper as hlpr
+from lamlight.logger import logger
 
 
 def create_lambda(name, role, subnet_id, security_group):
@@ -29,35 +40,17 @@ def create_lambda(name, role, subnet_id, security_group):
         security group id to be assigned to lambda function
     
     """
-    if hlpr.lambda_function_exists(name):
+    if lambda_utils.lambda_function_exists(name):
         raise errors.AWSError(" Lambda function with '{}' name already exists.".format(name))
 
     logger.info('Creating Scaffolding for lambda function.')
-    create_package()
+    hlpr.create_package()
     logger.info('Building Zip.')
     zip_path = build_package()
     logger.info('Creating lambda function.')
-    lambda_info = hlpr.create_lambda_function(name, role, subnet_id, security_group, zip_path)
+    lambda_info = lambda_utils.create_lambda_function(name, role, subnet_id, security_group, zip_path)
     logger.info('lambda function created. You can start playing with your lambda')
     hlpr.save_lamlight_conf(lambda_info)
-
-
-def create_package():
-    """
-    It create a aws lambda boiler plate for new project to work on. Developer
-    can use this boilerplate to put their code on lambda function using lamlight.
-
-    """
-    destination_path = os.getcwd()
-    package_path = os.path.dirname(os.path.realpath(__file__))
-    SOURCE = 'source/'
-    source_path = package_path + os.sep + SOURCE
-
-    if copy_tree(source_path, destination_path):
-        if not os.path.exists(destination_path + os.sep + 'requirements.txt'):
-            open(destination_path + os.sep + 'requirements.txt', 'w').close()
-    else:
-        raise errors.PackagingError(consts.SCAFFOLDING_ERROR)
 
 
 def update_lamda(lambda_name):
@@ -71,7 +64,7 @@ def update_lamda(lambda_name):
         Lambda function name
     """
     try:
-        if not hlpr.lambda_function_exists(lambda_name):
+        if not lambda_utils.lambda_function_exists(lambda_name):
             raise errors.AWSError(consts.NO_LAMBDA_FUNCTION.format(lambda_name))
 
         logger.info('connecting to aws.')
@@ -89,7 +82,7 @@ def update_lamda(lambda_name):
         hlpr.save_lamlight_conf(lambda_information['Configuration'])
     except Exception as error:
         raise errors.PackagingError(consts.CODE_PULLING_ERROR.format(lambda_name))
-    
+
 
 def connect_lambda(lambda_name):
     """
@@ -102,13 +95,13 @@ def connect_lambda(lambda_name):
         name of the lambda function
     """
     try:
-        if not hlpr.lambda_function_exists(lambda_name):
-            raise errors.AWSError(consts.NO_LAMBDA_FUNCTION.format(lambda_name))    
+        if not lambda_utils.lambda_function_exists(lambda_name):
+            raise errors.AWSError(consts.NO_LAMBDA_FUNCTION.format(lambda_name))
         logger.info('connecting to aws.')
-        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
+        client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
         lambda_information = client.get_function(FunctionName=lambda_name)
         hlpr.save_lamlight_conf(lambda_information['Configuration'])
-        logger.info("Your project is connected to '{}' lambda function".format(lambda_name))
+        logger.info("Your project is connected to '%s' lambda function" %(lambda_name))
     except Exception as error:
         raise errors.PackagingError(error.message)
 
@@ -128,23 +121,21 @@ def build_package():
     if os.path.exists('temp_dependencies/'):
         shutil.rmtree('temp_dependencies/')
     os.makedirs("temp_dependencies/")
-    
+
     command_list = list()
-    command_list.append((os.system,("pip install --upgrade pip",)))
-    command_list.append((os.system,("pip install  --no-cache-dir -r requirements.txt -t temp_dependencies/",)))
+    command_list.append((os.system, ("pip install --upgrade pip",)))
+    command_list.append((os.system, ("pip install  --no-cache-dir -r requirements.txt -t temp_dependencies/",)))
     command_list.append((hlpr.remove_test_cases, ('temp_dependencies/',)))
     hlpr.run_dependent_commands(command_list)
     try:
         os.system('cd temp_dependencies && zip -r ../.requirements.zip .')
-        #shutil.make_archive('.requirements', 'zip', 'temp_dependencies/')
         shutil.rmtree('temp_dependencies/')
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')
-        zip_path+='.zip'
+        zip_path += '.zip'
     except Exception:
         raise errors.PackagingError(consts.PACKAGIN_ERROR)
-
     return zip_path
 
 
@@ -156,21 +147,19 @@ def push_code():
     """
     if not os.path.exists(consts.LAMLIGHT_CONF):
         raise errors.NoLamlightProject(consts.NO_LAMLIGHT_PROJECT)
-    
+
     logger.info('Getting aws user identity')
-    account_id = boto3.client('sts',region_name=os.getenv('AWS_REGION')).get_caller_identity().get('Account')
+    sts = boto3.client('sts', region_name=os.getenv('AWS_REGION'))
+    account_id = sts.get_caller_identity().get('Account')
 
     bucket_name = 'lambda-code-{}'.format(account_id)
-    hlpr.create_bucket(bucket_name)
+    s3_utils.create_bucket(bucket_name)
 
     logger.info('building zip')
     zip_path = build_package()
     logger.info("uploading code base to S3")
-    hlpr.upload_to_s3(zip_path, bucket_name)
+    s3_utils.upload_to_s3(zip_path, bucket_name)
 
     s3_key = ntpath.basename(zip_path)
-    hlpr.link_lambda(bucket_name, s3_key)
+    lambda_utils.link_lambda(bucket_name, s3_key)
     logger.info("Lambda updation complete")
-
-
-

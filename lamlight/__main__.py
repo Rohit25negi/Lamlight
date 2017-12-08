@@ -1,4 +1,5 @@
 import os
+import sys
 import traceback
 
 import boto3
@@ -29,7 +30,8 @@ def cli():
     my_region = my_session.region_name
     if not my_region and not os.getenv('AWS_REGION'):
         logger.error('No region specified set AWS_REGION to aws region')
-    pass
+        sys.exit(1)
+    
 
 
 @cli.command()

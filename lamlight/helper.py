@@ -1,12 +1,14 @@
+"""
+This modules provides the helper functions which can be useful throught the project.
+
+"""
 import configparser
-import ntpath
+from distutils.dir_util import copy_tree
 import os
 import shutil
 import tempfile
 import urllib
 import zipfile
-
-import boto3
 
 import constants as consts
 import errors
@@ -29,27 +31,6 @@ def run_dependent_commands(command_list):
         assert not command[0](*command[1])
 
 
-def lambda_function_exists(name):
-    """
-    It checks whether the lambda function with the given name exists or not.
-
-    Parameters
-    -----------
-    name : str:
-        name of the lambda function
-    
-    Returns
-    --------
-    bool:
-        True if the lambda function with the given name exists. Else, False
-    """
-    try:
-        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
-        client.get_function(FunctionName=name)
-        return True
-    except Exception:
-        return False
-
 
 def remove_test_cases(path):
     """
@@ -68,12 +49,11 @@ def remove_test_cases(path):
     """
     for root, dirs, files in os.walk(path):
         for dir in dirs:
-            path=root+os.sep+dir
-            
+            path = root + os.sep + dir
             if os.path.isdir(path) and 'tests' in dir: 
                 try:
                     shutil.rmtree(path)
-                except Exception as err:
+                except Exception:
                     return 1
     return 0
 
@@ -130,198 +110,19 @@ def save_lamlight_conf(lambda_information):
     conf_parser["LAMBDA_FUNCTION"]["funtionname"] = lambda_information['FunctionName']
     conf_parser.write(fout)
 
-
-def create_bucket(bucket_name):
+def create_package():
     """
-    This function creates a new bucket with name 'bucket_name' is
-    already not exists.
-
-    Parameters
-    -----------
-    bucket_name: str
-           Name of bucket to be created
+    It create a aws lambda boiler plate for new project to work on. Developer
+    can use this boilerplate to put their code on lambda function using lamlight.
 
     """
-    res = boto3.resource("s3")
-    my_session = boto3.session.Session()
-    my_region = my_session.region_name
-    if not my_region:
-        my_region = os.getenv('AWS_REGION')
+    destination_path = os.getcwd()
+    package_path = os.path.dirname(os.path.realpath(__file__))
+    SOURCE = 'source/'
+    source_path = package_path + os.sep + SOURCE
 
-    if res.Bucket(bucket_name) not in res.buckets.all():
-        s3 = boto3.client("s3",region_name=os.getenv('AWS_REGION'))
-        s3.create_bucket(Bucket=bucket_name,CreateBucketConfiguration={
-        'LocationConstraint': my_region})
-
-
-def upload_to_s3(zip_path,bucket_name):
-    """
-    This function uploads a file to the bucket with name 'bucket_name'
-
-    Parameters
-    -----------
-    zip_path: str
-           zip file to be uploaded to bucket
-    bucket_name: str
-           Name of the bucket to which the file is to be uploaded
-    file_url: str
-           s3 url of the uploaded file.
-
-    """
-    s3 = boto3.client('s3',region_name=os.getenv('AWS_REGION'))
-    zip_path = os.path.expanduser(zip_path)
-    file_name = ntpath.basename(zip_path)
-    s3.upload_file(zip_path,bucket_name,file_name)
-    file_url = '%s/%s/%s' % (s3.meta.endpoint_url, bucket_name, file_name)
-    return file_url
-
-def link_lambda(bucket_name, s3_key):
-    """
-    It links the code package on s3 bucket to the lambda function.
-
-    Parameters
-    -----------
-    bucket_name: str
-           Name of the bucket where the code package is present
-    s3_key: str
-           Key of the code package
-
-    """
-    client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
-    parser = configparser.ConfigParser()
-    parser.read(consts.LAMLIGHT_CONF)
-    client.update_function_code(FunctionName=parser['LAMBDA_FUNCTION']['funtionname'],
-                                S3Bucket=bucket_name, S3Key=s3_key)
-
-
-def create_lambda_function(name, role, subnet_id, security_group, zip_path):
-    """
-    This function creates the lambda function with the given information
-    passed as the arguments.
-
-    Parameters
-    -----------
-    name: str
-            Name of the lambda function
-    role: str
-            IAM Role to be assigned to the lambda function
-    subnet_id: str
-            Subnet to be assgined to the lambda function
-    security_group: str
-            Security group to be assigned to the lambda function
-    zip_path: str
-            zip path which contains the code to be uploaded on lambda function
-    :return:
-    """
-    try:
-        if not role:
-            role = get_role()
-        if not subnet_id: 
-            subnet_id = get_subnet_id()
-        if not security_group:
-            security_group = get_security_group()
-
-        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
-        lambda_details = default_lambda_details()
-        lambda_details['FunctionName'] = name
-        lambda_details['Role'] = role
-        lambda_details['VpcConfig'] = {'SubnetIds':[subnet_id],'SecurityGroupIds':[security_group]}
-        lambda_details['Code'] = {'ZipFile':open(zip_path).read()}
-        lambda_info = client.create_function(**lambda_details)
-    
-        return lambda_info
-    except Exception as error:
-        raise errors.AWSError(error.message)
-
-
-def get_subnet_id():
-    """
-    Returns the subnet id for new lambda function
-
-    Returns
-    --------
-    subnet_id: str
-        subnet id
-    """
-    client = boto3.client('ec2',region_name=os.getenv('AWS_REGION'))
-    subnets = client.describe_subnets()
-    trimmed_subnets_list = [{"SubnetId":subnet.get("SubnetId"),
-                                 "VpcId":subnet["VpcId"],
-                                 "Tags":subnet["Tags"]}
-                                for subnet in subnets.get("Subnets")]
-    print "-----------------------------SELECT THE SUBNET---------------------------------"
-    for subnet in trimmed_subnets_list:
-        print "SUBNET ID = {}".format(subnet["SubnetId"])
-        print "VPC ID = {}".format(subnet["VpcId"])
-        print "TAGS = {}".format(subnet["Tags"])
-        print ""
-    print "-------------------------------------------------------------------------------"
-    subnet_id = raw_input('enter the subnet id : ').strip()
-    return subnet_id
-        
-
-
-def default_lambda_details():
-    """
-    Returns the default lambda details.
-
-    Returns
-    --------
-    lambda_function_details: dict
-        default lambda function details for python2.7
-    """
-
-    lambda_function_details = dict()
-    lambda_function_details['Runtime'] = 'python2.7'
-    lambda_function_details['Handler'] = 'service_router.main'
-
-    return lambda_function_details
-
-
-def get_role():
-    """
-    Returns the IAM role ARN to be assigned to the lambda function
-
-    Returns
-    --------
-    role_arn: str
-            IAM Role ARN
-    """
-    client = boto3.client('iam',region_name=os.getenv('AWS_REGION'))
-    roles = client.list_roles()
-
-    trimed_roles_list = [{'RoleName':role['RoleName'],'Arn':role['Arn']} for role in roles.get('Roles')]
-    print "-----------------------------SELECT THE ROLE----------------------------------"
-    for role in trimed_roles_list:
-        print "RoleName = {}".format(role.get("RoleName"))
-        print "Arn = {}".format(role.get("Arn"))
-        print ""
-    print "------------------------------------------------------------------------------"
-    role_arn = raw_input('give the role Arn : ').strip()
-
-    return role_arn
-
-
-def get_security_group():
-    """
-    Returns the Security group id to be assigned to aws lambda function
-
-    Returns
-    --------
-    security_group: str
-        security group id
-    """
-    client = boto3.client('ec2',region_name=os.getenv('AWS_REGION'))
-    security_groups = client.describe_security_groups()
-    trimmed_sg_list = [{"GroupName":sg["GroupName"],
-                        "GroupId":sg["GroupId"]}
-                       for sg in security_groups['SecurityGroups']]
-
-    print "-----------------------------SELECT THE SECURITY GROUP-------------------------"
-    for sg in trimmed_sg_list:
-        print "GROUP NAME = {}".format(sg['GroupName'])
-        print "GROUP ID = {}".format(sg["GroupId"])
-        print ""
-    print "--------------------------------------------------------------------------------"
-    security_group = raw_input("security group id : ").strip()
-    return security_group
+    if copy_tree(source_path, destination_path):
+        if not os.path.exists(destination_path + os.sep + 'requirements.txt'):
+            open(destination_path + os.sep + 'requirements.txt', 'w').close()
+    else:
+        raise errors.PackagingError(consts.SCAFFOLDING_ERROR)
