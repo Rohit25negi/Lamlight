@@ -120,12 +120,16 @@ def build_package():
     """
     if os.path.exists('temp_dependencies/'):
         shutil.rmtree('temp_dependencies/')
+
+    if os.path.exists('.requirements.zip'):
+        os.remove('.requirements.zip')
+
     os.makedirs("temp_dependencies/")
 
     command_list = list()
     command_list.append((os.system, ("pip install --upgrade pip",)))
     command_list.append((os.system, ("pip install  --no-cache-dir -r requirements.txt -t temp_dependencies/",)))
-    command_list.append((hlpr.remove_test_cases, ('temp_dependencies/',)))
+    command_list.append((hlpr.remove_trees, ('temp_dependencies/',)))
     hlpr.run_dependent_commands(command_list)
     try:
         os.system('cd temp_dependencies && zip -r ../.requirements.zip .')
@@ -152,7 +156,7 @@ def push_code():
     sts = boto3.client('sts', region_name=os.getenv('AWS_REGION'))
     account_id = sts.get_caller_identity().get('Account')
 
-    bucket_name = 'lambda-code-{}'.format(account_id)
+    bucket_name = 'lambda-code-{}-{}'.format(account_id,os.getenv('AWS_REGION'))
     s3_utils.create_bucket(bucket_name)
 
     logger.info('building zip')

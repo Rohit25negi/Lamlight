@@ -31,8 +31,7 @@ def run_dependent_commands(command_list):
         assert not command[0](*command[1])
 
 
-
-def remove_test_cases(path):
+def remove_trees(path):
     """
     This functions is used to remove the test cases from the heavy
     pip packages.
@@ -74,8 +73,8 @@ def download_object(url):
             path where the code package is downloaded
     """
     temp_dir_path = tempfile.mkdtemp(dir='/tmp')
-    download_file_path = temp_dir_path+os.sep+"pet.zip"
-    urllib.urlretrieve(url,download_file_path)
+    download_file_path = temp_dir_path + os.sep + "pet.zip"
+    urllib.urlretrieve(url, download_file_path)
     return download_file_path
 
 
