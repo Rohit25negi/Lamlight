@@ -1,3 +1,6 @@
+"""
+This modules defines the custom exceptions
+"""
 class BaseException(Exception):
     
     def __init__(self,*args,**kwargs):
