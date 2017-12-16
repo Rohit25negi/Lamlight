@@ -2,9 +2,9 @@
 
 
 ### Contents
-* [Features](#Features)
-* [Prerequisite](#Prerequisite)
-* [Quick Start](#Quick-Start)
+* [Features](#features)
+* [Prerequisite](#prerequisite)
+* [Quick Start](#quick-start)
 
 ### Features
 * Creating _boilerplate_ for AWS lambda function.
