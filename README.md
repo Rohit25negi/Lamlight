@@ -2,10 +2,9 @@
 
 
 ### Contents
-* Features
-* Prerequisite
-* Quick Start
-* Examples
+* [Features](#Features)
+* [Prerequisite](#Prerequisite)
+* [Quick Start](#Quick-Start)
 
 ### Features
 * Creating _boilerplate_ for AWS lambda function.
@@ -21,11 +20,17 @@
 
 ### Quick Start
 1. **Install the Package**
-    ```pip install git+https://github.com/Rohit25negi/lamlight```
+    ```
+    pip install git+https://github.com/Rohit25negi/lamlight
+    ```
 2. **Make project Directory**
-    ```mkdir demo_project```
+    ```
+    mkdir demo_project
+    ```
 3. **Get into the project**
-    ```cd demo_project```
+    ```
+    cd demo_project
+    ```
 4. **Create lamlight project**
     ```
     lamlight create \
