@@ -39,7 +39,7 @@ def cli():
 @click.option('--role', help='IAM Role to be assigned to lambda function')
 @click.option('--subnet_id',help='Subnet id to be assigned to lambda function')
 @click.option('--security_group',help='Security group to be assigned to lambda function')
-def create(name, role, subnet_id, security_group):
+def create(lambda_name, role, subnet_id, security_group,):
     """
     It is used to start with new aws lambda project.
     It will perform the following function:
@@ -51,7 +51,7 @@ def create(name, role, subnet_id, security_group):
 
     """
     try:
-        operations.create_lambda(name, role, subnet_id, security_group)
+        operations.create_lambda(lambda_name, role, subnet_id, security_group)
     except (errors.PackagingError, errors.AWSError,errors.NoLamlightProject) as error:
         logger.error(error.message)
     except Exception as error:
