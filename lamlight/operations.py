@@ -155,8 +155,13 @@ def push_code():
     logger.info('Getting aws user identity')
     sts = boto3.client('sts', region_name=os.getenv('AWS_REGION'))
     account_id = sts.get_caller_identity().get('Account')
+    my_session = boto3.session.Session()
+    my_region = my_session.region_name
 
-    bucket_name = 'lambda-code-{}-{}'.format(account_id,os.getenv('AWS_REGION'))
+    if not my_region:
+        my_region = os.getenv('AWS_REGION')
+
+    bucket_name = 'lambda-code-{}-{}'.format(account_id,my_region)
     s3_utils.create_bucket(bucket_name)
 
     logger.info('building zip')
