@@ -1,4 +1,5 @@
-QUERY_PARAM_STRING = 'queryStringParameters'
+RESOURCE_QUERY_DATA = 'queryStringParameters'
+RESOURCE_PAYLOAD_DATA = 'body_payload'
 DEPENDENCIES_PATH = '/tmp/dependencies/'
 UNZIP_ERROR = 'problem unzip the requirements'
 MARKER_UNZIP_MSG = 'unzip status'

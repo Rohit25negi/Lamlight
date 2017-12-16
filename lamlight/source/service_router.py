@@ -8,7 +8,7 @@ import sys
 import unzip_requirements
 
 
-import resources.constants as res_const
+import constants as res_const
 from resources import helper
 from  resources.resource_list import RESOURCES,ROUTES
 from resources.resource_list import invoke_resource
