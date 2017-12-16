@@ -132,7 +132,7 @@ def build_package():
     command_list.append((hlpr.remove_trees, ('temp_dependencies/',)))
     hlpr.run_dependent_commands(command_list)
     try:
-        os.system('cd temp_dependencies && zip -r ../.requirements.zip .')
+        os.system('cd temp_dependencies && zip -r ../.requirements.zip -i .')
         shutil.rmtree('temp_dependencies/')
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
