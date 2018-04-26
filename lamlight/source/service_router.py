@@ -1,7 +1,10 @@
-# This module is the responsible invoking the appropriate resource methods depending
-# on the request to the microservice provider(lambda for now).
-# having this module prevent any change in the rest of the code base. Rest of the code
-# base will be indipendent of the deployment.
+'''
+ This module is the responsible invoking the appropriate resource methods depending
+ on the request to the microservice provider(lambda for now).
+ having this module prevent any change in the rest of the code base. Rest of the code
+ base will be indipendent of the deployment.
+
+'''
 import json
 import sys
 

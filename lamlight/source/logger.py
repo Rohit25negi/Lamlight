@@ -1,3 +1,7 @@
+'''
+Module defines a logger to send the logs to cloud watch from lambda function
+'''
+
 
 def log_to_cloudwatch(log_marker, message):
     '''
