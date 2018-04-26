@@ -1,3 +1,11 @@
+'''
+lamlight
+~~~~~~~~~
+This is the main module. Code in this module is invoked when the lamlight package is
+accessed.
+
+'''
+
 import os
 import sys
 import traceback
@@ -6,7 +14,7 @@ import boto3
 import click
 
 import errors
-from  logger import logger
+from logger import logger
 import operations
 
 
@@ -31,14 +39,13 @@ def cli():
     if not my_region and not os.getenv('AWS_REGION'):
         logger.error('No region specified set AWS_REGION to aws region')
         sys.exit(1)
-    
 
 
 @cli.command()
 @click.option('--lambda_name', default='my-project', help='Name of the lambda function')
 @click.option('--role', help='IAM Role to be assigned to lambda function')
-@click.option('--subnet_id',help='Subnet id to be assigned to lambda function')
-@click.option('--security_group',help='Security group to be assigned to lambda function')
+@click.option('--subnet_id', help='Subnet id to be assigned to lambda function')
+@click.option('--security_group', help='Security group to be assigned to lambda function')
 def create(lambda_name, role, subnet_id, security_group,):
     """
     It is used to start with new aws lambda project.
@@ -52,7 +59,7 @@ def create(lambda_name, role, subnet_id, security_group,):
     """
     try:
         operations.create_lambda(lambda_name, role, subnet_id, security_group)
-    except (errors.PackagingError, errors.AWSError,errors.NoLamlightProject) as error:
+    except (errors.PackagingError, errors.AWSError, errors.NoLamlightProject) as error:
         logger.error(error.message)
     except Exception as error:
         logger.critical('Unknown error occured.')
@@ -60,7 +67,7 @@ def create(lambda_name, role, subnet_id, security_group,):
 
 
 @cli.command()
-@click.option('--lambda_name',required=True,help='Name of the lambda function which is to be updated')
+@click.option('--lambda_name', required=True, help='Name of the lambda function which is to be updated')
 def update(lambda_name):
     """
     It is used to update the existing lambda function. It downloads the code running the given function.
@@ -73,8 +80,9 @@ def update(lambda_name):
         logger.critical('Unknown error occured.')
         traceback.print_exc()
 
+
 @cli.command()
-@click.option('--lambda_name',required=True,help='Name of the lambda function which is to be updated')
+@click.option('--lambda_name', required=True, help='Name of the lambda function which is to be updated')
 def connect(lambda_name):
     """
     It is used to connect your project with an existing lambda function
@@ -87,6 +95,7 @@ def connect(lambda_name):
     except Exception as error:
         logger.critical('Unknown error occured.')
         traceback.print_exc()
+
 
 @cli.command()
 def push():
