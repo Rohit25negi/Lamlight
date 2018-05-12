@@ -1,1 +1,5 @@
-#helper module for resources
+"""
+helper
+~~~~~~~
+Module defines the helper function of the project
+"""

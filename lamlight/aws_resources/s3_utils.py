@@ -29,7 +29,7 @@ def create_bucket(bucket_name):
     if res.Bucket(bucket_name) not in res.buckets.all():
         s3_client = boto3.client("s3", region_name=my_region)
         s3_client.create_bucket(Bucket=bucket_name,
-                                CreateBucketConfiguration={'LocationConstraint' : my_region})
+                                CreateBucketConfiguration={'LocationConstraint': my_region})
 
 
 def upload_to_s3(file_path, bucket_name):
@@ -50,5 +50,6 @@ def upload_to_s3(file_path, bucket_name):
     file_path = os.path.expanduser(file_path)
     file_name = ntpath.basename(file_path)
     s3_client.upload_file(file_path, bucket_name, file_name)
-    file_url = '{}/{}/{}'.format(s3_client.meta.endpoint_url, bucket_name, file_name)
+    file_url = '{}/{}/{}'.format(s3_client.meta.endpoint_url,
+                                 bucket_name, file_name)
     return file_url

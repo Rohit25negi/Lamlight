@@ -12,7 +12,7 @@ import boto3
 
 from lamlight.aws_resources import ec2_utils
 from lamlight import errors
-from lamlight import  constants as consts
+from lamlight import constants as consts
 
 
 def default_lambda_details():
@@ -54,19 +54,20 @@ def create_lambda_function(name, role, subnet_id, security_group, zip_path):
     try:
         if not role:
             role = ec2_utils.get_role()
-        if not subnet_id: 
+        if not subnet_id:
             subnet_id = ec2_utils.get_subnet_id()
         if not security_group:
             security_group = ec2_utils.get_security_group()
 
-        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
+        client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
         lambda_details = default_lambda_details()
         lambda_details['FunctionName'] = name
         lambda_details['Role'] = role
-        lambda_details['VpcConfig'] = {'SubnetIds':[subnet_id],'SecurityGroupIds':[security_group]}
-        lambda_details['Code'] = {'ZipFile':open(zip_path).read()}
+        lambda_details['VpcConfig'] = {'SubnetIds': [
+            subnet_id], 'SecurityGroupIds': [security_group]}
+        lambda_details['Code'] = {'ZipFile': open(zip_path).read()}
         lambda_info = client.create_function(**lambda_details)
-    
+
         return lambda_info
     except Exception as error:
         raise errors.AWSError(error.message)
@@ -84,7 +85,7 @@ def link_lambda(bucket_name, s3_key):
            Key of the code package
 
     """
-    client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
+    client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
     parser = configparser.ConfigParser()
     parser.read(consts.LAMLIGHT_CONF)
     client.update_function_code(FunctionName=parser['LAMBDA_FUNCTION']['funtionname'],
@@ -99,14 +100,14 @@ def lambda_function_exists(name):
     -----------
     name : str:
         name of the lambda function
-    
+
     Returns
     --------
     bool:
         True if the lambda function with the given name exists. Else, False
     """
     try:
-        client = boto3.client('lambda',region_name=os.getenv('AWS_REGION'))
+        client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
         client.get_function(FunctionName=name)
         return True
     except Exception:
