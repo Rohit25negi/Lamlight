@@ -18,10 +18,11 @@ db = DatabaseSession().db_session
 
 
 class BaseModel(object):
-    '''  
-      It is an abstract class.It is the base class for all the 
-      db model that will be going to present in the db_models. 
-      This class will serve the purpose of providing the common 
+    '''
+      It is an abstract class.It is the base class for all the
+      db model that will be going to present in the db_models.
+      This class will serve the purpose of providing the common
       functionalities.
     '''
     pass
+    

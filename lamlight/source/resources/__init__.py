@@ -1,9 +1,19 @@
+"""
+resources
+~~~~~~~~~~
+Module defines the Base resource class for other resources
+"""
+
+
 import abc
 
 from abc import abstractmethod
 
 
 class Resource(object):
+    """
+    Base resource class
+    """
     __metaclass__ = abc.ABCMeta
 
     @abstractmethod
