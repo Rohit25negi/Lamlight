@@ -1,4 +1,6 @@
 """
+lamlight.helper
+~~~~~~~~~~~~~~~~
 This modules provides the helper functions which can be useful throught the project.
 
 """

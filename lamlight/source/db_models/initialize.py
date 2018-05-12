@@ -4,6 +4,10 @@ from db_models import db_creds
 
 
 class DatabaseSession:
+    """
+    Class defines the Database session. This class defines the methods
+    required to make the singleton database connection
+    """
     def database_url(self):
         '''
         This function prepares and returns the database url for the
