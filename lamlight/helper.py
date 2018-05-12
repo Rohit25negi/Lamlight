@@ -51,7 +51,7 @@ def remove_trees(path):
     for root, dirs, files in os.walk(path):
         for dir in dirs:
             path = root + os.sep + dir
-            if os.path.isdir(path) and 'tests' in dir: 
+            if os.path.isdir(path) and 'tests' in dir:
                 try:
                     shutil.rmtree(path)
                 except Exception:
@@ -89,9 +89,9 @@ def extract_zipped_code(zipped_code):
     zipped_code: str
            path to zip file which is to be extracted
     """
-    with zipfile.ZipFile(zipped_code,'r') as zip_ref:
+    with zipfile.ZipFile(zipped_code, 'r') as zip_ref:
         zip_ref.extractall()
-    
+
 
 def save_lamlight_conf(lambda_information):
     """
@@ -105,11 +105,12 @@ def save_lamlight_conf(lambda_information):
         dictionary which contains the information about a lambda function
     """
 
-    fout = open(consts.LAMLIGHT_CONF,'w')
+    fout = open(consts.LAMLIGHT_CONF, 'w')
     conf_parser = configparser.ConfigParser()
     conf_parser.add_section("LAMBDA_FUNCTION")
     conf_parser["LAMBDA_FUNCTION"]["funtionname"] = lambda_information['FunctionName']
     conf_parser.write(fout)
+
 
 def create_package():
     """
