@@ -41,5 +41,5 @@
     ```
 5. **Push the code to lambda**
     ```
-    lamblight push
+    lamlight push
     ```
