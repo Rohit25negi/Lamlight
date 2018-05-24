@@ -149,7 +149,7 @@ def build_package(project_name):
     command_list.append((hlpr.remove_trees, (consts.DEPENDENCY_DIR.format(project_name),)))
     hlpr.run_dependent_commands(command_list)
     try:
-        os.system(consts.ZIP_DEPENDENCY)
+        os.system(consts.ZIP_DEPENDENCY.format(project_name))
         shutil.rmtree(consts.DEPENDENCY_DIR.format(project_name))
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
