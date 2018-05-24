@@ -111,13 +111,13 @@ def save_lamlight_conf(lambda_information):
     conf_parser["LAMBDA_FUNCTION"]["funtionname"] = lambda_information['FunctionName']
     conf_parser.write(fout)
 
-def create_package():
+def create_package(project_name):
     """
     It create a aws lambda boiler plate for new project to work on. Developer
     can use this boilerplate to put their code on lambda function using lamlight.
 
     """
-    destination_path = os.getcwd()
+    destination_path = os.getcwd() + os.sep + project_name
     package_path = os.path.dirname(os.path.realpath(__file__))
     SOURCE = 'source/'
     source_path = package_path + os.sep + SOURCE

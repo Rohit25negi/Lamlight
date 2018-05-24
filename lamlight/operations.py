@@ -55,9 +55,10 @@ def create_lambda(name, role, subnet_id, security_group):
     os.mkdir(name)
     #TODO shift the context to next folder
     logger.info('Creating Scaffolding for lambda function.')
-    hlpr.create_package()
+    hlpr.create_package(name)
+
     logger.info('Building Zip.')
-    zip_path = build_package()
+    zip_path = build_package(name)
     logger.info('Creating lambda function.')
     lambda_info = lambda_utils.create_lambda_function(
         name, role, subnet_id, security_group, zip_path)
@@ -122,7 +123,7 @@ def connect_lambda(lambda_name):
         raise errors.PackagingError(error.message)
 
 
-def build_package():
+def build_package(project_name):
     """
     This functions builds the code package to put on aws lambda function.
     Zip package prepared by this function is stored in /tmp/<project-name>.zip
@@ -134,22 +135,22 @@ def build_package():
         path of the zip package
 
     """
-    if os.path.exists(consts.DEPENDENCY_DIR):
-        shutil.rmtree(consts.DEPENDENCY_DIR)
+    if os.path.exists(consts.DEPENDENCY_DIR.format(project_name)):
+        shutil.rmtree(consts.DEPENDENCY_DIR.format(project_name))
 
-    if os.path.exists('.requirements.zip'):
-        os.remove('.requirements.zip')
+    if os.path.exists('{}/.requirements.zip'.format(project_name)):
+        os.remove('{}/.requirements.zip'.format(project_name))
 
-    os.makedirs(consts.DEPENDENCY_DIR)
+    os.makedirs(consts.DEPENDENCY_DIR.format(project_name))
 
     command_list = list()
     command_list.append((os.system, (consts.PIP_UPGRADE,)))
     command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
-    command_list.append((hlpr.remove_trees, (consts.DEPENDENCY_DIR,)))
+    command_list.append((hlpr.remove_trees, (consts.DEPENDENCY_DIR.format(project_name),)))
     hlpr.run_dependent_commands(command_list)
     try:
         os.system(consts.ZIP_DEPENDENCY)
-        shutil.rmtree(consts.DEPENDENCY_DIR)
+        shutil.rmtree(consts.DEPENDENCY_DIR.format(project_name))
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')
@@ -181,7 +182,8 @@ def push_code():
     s3_utils.create_bucket(bucket_name)
 
     logger.info('building zip')
-    zip_path = build_package()
+    cwd = ntpath.basename(os.getcwd())
+    zip_path = build_package(cwd)
     logger.info("uploading code base to S3")
     s3_utils.upload_to_s3(zip_path, bucket_name)
 
