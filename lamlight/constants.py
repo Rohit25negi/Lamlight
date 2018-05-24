@@ -29,5 +29,5 @@ ZIP_DEPENDENCY = 'cd temp_dependencies && zip -r ../.requirements.zip .'
 CONNECT_TO_LAMBDA = "Your project is connected to '{}' lambda function"
 
 # general
-DEPENDENCY_DIR = 'temp_dependencies/'
+DEPENDENCY_DIR = '{}/temp_dependencies/'
 BUCKET_NAME = 'lambda-code-{}-{}'
