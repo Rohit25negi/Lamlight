@@ -26,7 +26,6 @@ ZIP_DEPENDENCY = 'cd temp_dependencies && zip -r ../.requirements.zip .'
 
 
 # logger messages
-
 CONNECT_TO_LAMBDA = "Your project is connected to '{}' lambda function"
 
 # general
