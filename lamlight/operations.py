@@ -43,10 +43,17 @@ def create_lambda(name, role, subnet_id, security_group):
         security group id to be assigned to lambda function
 
     """
+
+    if os.path.exists(name):
+        raise errors.BaseException('Directory with name {} already exists'.format(name))
+
     if lambda_utils.lambda_function_exists(name):
         raise errors.AWSError(
             " Lambda function with '{}' name already exists.".format(name))
 
+    
+    os.mkdir(name)
+    #TODO shift the context to next folder
     logger.info('Creating Scaffolding for lambda function.')
     hlpr.create_package()
     logger.info('Building Zip.')
