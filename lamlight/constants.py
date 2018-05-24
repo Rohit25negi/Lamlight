@@ -21,8 +21,8 @@ NO_LAMLIGHT_PROJECT = 'Not a Lamlight project. Get in lamlight by connection to 
 
 # console commands
 PIP_UPGRADE = "pip install --upgrade pip"
-PIP_REQ_INSTALL = "pip install  --no-cache-dir -r requirements.txt -t temp_dependencies/"
-ZIP_DEPENDENCY = 'cd temp_dependencies && zip -r ../.requirements.zip $PWD'
+PIP_REQ_INSTALL = "pip install --upgrade --no-cache-dir -r requirements.txt -t temp_dependencies/"
+ZIP_DEPENDENCY = 'cd temp_dependencies && zip -r ../.requirements.zip .'
 
 
 # logger messages
