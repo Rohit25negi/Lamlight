@@ -58,6 +58,7 @@ def create_lambda(name, role, subnet_id, security_group):
     hlpr.create_package(name)
 
     logger.info('Building Zip.')
+    os.chdir(name)
     zip_path = build_package(name)
     logger.info('Creating lambda function.')
     lambda_info = lambda_utils.create_lambda_function(
@@ -123,7 +124,7 @@ def connect_lambda(lambda_name):
         raise errors.PackagingError(error.message)
 
 
-def build_package(project_name):
+def build_package():
     """
     This functions builds the code package to put on aws lambda function.
     Zip package prepared by this function is stored in /tmp/<project-name>.zip
@@ -135,23 +136,22 @@ def build_package(project_name):
         path of the zip package
 
     """
-    dependency_path = '{}/{}'.format(project_name, consts.DEPENDENCY_DIR)
-    if os.path.exists(dependency_path):
-        shutil.rmtree(dependency_path)
+    if os.path.exists(consts.DEPENDENCY_DIR):
+        shutil.rmtree(consts.DEPENDENCY_DIR)
 
-    if os.path.exists('{}/.requirements.zip'.format(project_name)):
-        os.remove('{}/.requirements.zip'.format(project_name))
+    if os.path.exists('.requirements.zip'):
+        os.remove('.requirements.zip')
 
-    os.makedirs(dependency_path)
+    os.makedirs(consts.DEPENDENCY_DIR)
 
     command_list = list()
     command_list.append((os.system, (consts.PIP_UPGRADE,)))
     command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
-    command_list.append((hlpr.remove_trees, (dependency_path,)))
+    command_list.append((hlpr.remove_trees, (consts.DEPENDENCY_DIR,)))
     hlpr.run_dependent_commands(command_list)
     try:
-        os.system(consts.ZIP_DEPENDENCY.format(project_name))
-        shutil.rmtree(dependency_path)
+        os.system(consts.ZIP_DEPENDENCY)
+        shutil.rmtree(consts.DEPENDENCY_DIR)
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')
@@ -184,7 +184,7 @@ def push_code():
 
     logger.info('building zip')
     cwd = ntpath.basename(os.getcwd())
-    zip_path = build_package(cwd)
+    zip_path = build_package()
     logger.info("uploading code base to S3")
     s3_utils.upload_to_s3(zip_path, bucket_name)
 
