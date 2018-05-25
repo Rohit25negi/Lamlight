@@ -135,22 +135,23 @@ def build_package(project_name):
         path of the zip package
 
     """
-    if os.path.exists(consts.DEPENDENCY_DIR.format(project_name)):
-        shutil.rmtree(consts.DEPENDENCY_DIR.format(project_name))
+    dependency_path = '{}/{}'.format(project_name, consts.DEPENDENCY_DIR)
+    if os.path.exists(dependency_path):
+        shutil.rmtree(dependency_path)
 
     if os.path.exists('{}/.requirements.zip'.format(project_name)):
         os.remove('{}/.requirements.zip'.format(project_name))
 
-    os.makedirs(consts.DEPENDENCY_DIR.format(project_name))
+    os.makedirs(dependency_path)
 
     command_list = list()
     command_list.append((os.system, (consts.PIP_UPGRADE,)))
     command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
-    command_list.append((hlpr.remove_trees, (consts.DEPENDENCY_DIR.format(project_name),)))
+    command_list.append((hlpr.remove_trees, (dependency_path,)))
     hlpr.run_dependent_commands(command_list)
     try:
         os.system(consts.ZIP_DEPENDENCY.format(project_name))
-        shutil.rmtree(consts.DEPENDENCY_DIR.format(project_name))
+        shutil.rmtree(dependency_path)
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')
