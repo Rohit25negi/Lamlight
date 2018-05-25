@@ -45,13 +45,13 @@ def create_lambda(name, role, subnet_id, security_group):
     """
 
     if os.path.exists(name):
-        raise errors.BaseException('Directory with name {} already exists'.format(name))
+        raise errors.BaseException(consts.DIRECTORY_ALREADY_EXISTS.format(name))
 
     if lambda_utils.lambda_function_exists(name):
         raise errors.AWSError(
-            " Lambda function with '{}' name already exists.".format(name))
+            consts.LAMBDA_ALREADY_EXISTS.format(name))
     os.mkdir(name)
-    logger.info('Creating Scaffolding for lambda function.')
+    logger.info('Creating boilderplate for lambda function.')
     hlpr.create_package(name)
 
     logger.info('Building Zip.')
