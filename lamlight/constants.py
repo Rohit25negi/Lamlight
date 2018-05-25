@@ -17,8 +17,8 @@ SCAFFOLDING_ERROR = 'Could not create project Scaffolding.'
 CODE_PULLING_ERROR = "cannot load the code base for '{}' lambda "
 PACKAGIN_ERROR = "Could not create the code package."
 NO_LAMLIGHT_PROJECT = 'Not a Lamlight project. Get in lamlight by connection to one lambda function'
-
-
+LAMBDA_ALREADY_EXISTS = " Lambda function with '{}' name already exists."
+DIRECTORY_ALREADY_EXISTS = 'Directory with name {} already exists'
 # console commands
 PIP_UPGRADE = "pip install --upgrade pip"
 PIP_REQ_INSTALL = "pip install --upgrade --no-cache-dir -r requirements.txt -t temp_dependencies/"
