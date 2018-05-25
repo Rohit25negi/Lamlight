@@ -50,16 +50,13 @@ def create_lambda(name, role, subnet_id, security_group):
     if lambda_utils.lambda_function_exists(name):
         raise errors.AWSError(
             " Lambda function with '{}' name already exists.".format(name))
-
-    
     os.mkdir(name)
-    #TODO shift the context to next folder
     logger.info('Creating Scaffolding for lambda function.')
     hlpr.create_package(name)
 
     logger.info('Building Zip.')
     os.chdir(name)
-    zip_path = build_package(name)
+    zip_path = build_package()
     logger.info('Creating lambda function.')
     lambda_info = lambda_utils.create_lambda_function(
         name, role, subnet_id, security_group, zip_path)
@@ -183,7 +180,6 @@ def push_code():
     s3_utils.create_bucket(bucket_name)
 
     logger.info('building zip')
-    cwd = ntpath.basename(os.getcwd())
     zip_path = build_package()
     logger.info("uploading code base to S3")
     s3_utils.upload_to_s3(zip_path, bucket_name)
