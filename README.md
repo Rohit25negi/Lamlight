@@ -1,10 +1,21 @@
 **lamlight** is a python package for serverless application. It abstracts out all the steps needed to develop a servless application for _AWS lambda_. It cuts down 90% of time for deploying/updating AWS lambda. 
 
+[![license](https://docs.google.com/uc?id=1P6tdP072hh890fovxgnk3ZFsWX-QMIfu)](https://www.linkedin.com/in/rohit25negi/)
 
 ### Contents
+* [Problems/Issues Solved](#problem-focused)
 * [Features](#features)
 * [Prerequisite](#prerequisite)
 * [Quick Start](#quick-start)
+* [Examples](#examples)
+
+### Problem focused
+This is time of microservices. Faster, better and robust delivery is becoming crucial. This is where microservices and serverless apps comes shine. Along, with the huge advantage of using microservices there are some limitation that cloud platforms like [AWS](https://docs.aws.amazon.com/lambda/latest/dg/limits.html) applies. **Lamlight** is made to solve this issues for all developers out there. You just need to write code and leave everything else on  **Lamlight**.
+The problems/Issues focused on:
+* **Putting large size dependencies on aws lambda(will be for others also soon)**: AWS lambda imposes a limit of 250 MB on code/dependencies size. So, How to use large dependencies like numpy, pandas, scipy on aws lambda. Simple, Use  **Lamlight**.  Lamlight compresses the package to its extent and allows you put the dependencies of size of almost 600 MBs.
+* **One click deployment**: Here  **Lamlight** works like GIT for you. Just connect with a lambda function once and just push the code with a single command.
+* **Updating existing code**: Checking the existing code deployed on AWS lambda function is very usefull for debuging and making quick patches. Lamlight allows you to do this also.
+* **push to multiple places**: Same code you have worked on can be very easily pushed to differnt AWS lambdas, Just connect with a new AWS lambda function you want(similar to changing the remote in GIT)
 
 ### Features
 * Creating _boilerplate_ for AWS lambda function.
@@ -23,7 +34,7 @@
     ```
     pip install git+https://github.com/Rohit25negi/lamlight
     ```
-4. **Create lamlight project**
+2. **Create lamlight project**
     ```
     lamlight create \
     --lambda_name demo_lambda \
@@ -31,7 +42,20 @@
     --subnet_id subnet-<subnet_id>\
     --security_group sg-<sg_id>
     ```
-5. **Push the code to lambda**
+3. **Push the code to lambda**
     ```
     lamlight push
     ```
+
+### Example
+1. **Connect with existing AWS lambda function**
+```
+~$ cd my_project
+my_project/$ lamlight connect --lambda_name my_lambda
+my_project/$ lamlight push
+
+```
+
+# Made with  ![alt text](https://docs.google.com/uc?id=1KtBi0X2fSN04XpS62T1s2sMeWxXj60Pj)
+
+   
