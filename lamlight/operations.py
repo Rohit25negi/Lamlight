@@ -140,6 +140,9 @@ def build_package():
         os.remove('.requirements.zip')
 
     os.makedirs(consts.DEPENDENCY_DIR)
+    
+    #TODO adding caching
+    dependencies = hlpr.get_changed_dependencies()
 
     command_list = list()
     command_list.append((os.system, (consts.PIP_UPGRADE,)))
