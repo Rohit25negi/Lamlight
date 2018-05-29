@@ -23,14 +23,6 @@
     ```
     pip install git+https://github.com/Rohit25negi/lamlight
     ```
-2. **Make project Directory**
-    ```
-    mkdir demo_project
-    ```
-3. **Get into the project**
-    ```
-    cd demo_project
-    ```
 4. **Create lamlight project**
     ```
     lamlight create \
