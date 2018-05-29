@@ -134,3 +134,4 @@ def get_changed_dependencies():
     It is used to cache the already installed dependencies.
     """
     #TODO caching dependencies
+    return None
