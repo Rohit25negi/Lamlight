@@ -127,3 +127,10 @@ def create_package(project_name):
             open(destination_path + os.sep + 'requirements.txt', 'w').close()
     else:
         raise errors.PackagingError(consts.SCAFFOLDING_ERROR)
+
+def get_changed_dependencies():
+    """
+    This function finds the dependencies which are changed or added.
+    It is used to cache the already installed dependencies.
+    """
+    #TODO caching dependencies
