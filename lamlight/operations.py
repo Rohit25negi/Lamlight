@@ -143,6 +143,7 @@ def build_package():
         if not os.path.exists('.requirements.zip') or hlpr.requirement_changed():
             install_dependencies()
             hlpr.update_last_modified_time('requirements.txt')
+            
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')
@@ -157,7 +158,9 @@ def install_dependencies():
     function installs the requirements listed in requirements.txt
     """
 
-    os.remove('.requirements.zip')
+    if os.path.exists('.requirements.zip'):
+        os.remove('.requirements.zip')
+
     command_list = list()
     command_list.append((os.system, (consts.PIP_UPGRADE,)))
     command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
