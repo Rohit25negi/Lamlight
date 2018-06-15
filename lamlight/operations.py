@@ -142,7 +142,7 @@ def build_package():
     try:
         if not os.path.exists('.requirements.zip') or hlpr.requirement_changed():
             install_dependencies()
-
+            hlpr.update_last_modified_time('requirements.txt')
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')

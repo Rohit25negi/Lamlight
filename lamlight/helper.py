@@ -162,6 +162,19 @@ def requirement_changed():
     return bool(req_last_mtime-req_recorded_mtime)
 
 
+def update_last_modified_time(file_path):
+    """
+    """
+    meta_data = os.stat(file_path)
+    parser = read_configuration_file()
+    if 'PROJECT_DETAILS' not in parser.sections():
+        parser.add_section('PROJECT_DETAILS')
+    parser.set('PROJECT_DETAILS', 'last_requirement_mtime',
+               meta_data[ST_MTIME])
+
+    parser.write(open(consts.LAMLIGHT_CONF, 'w'))
+
+
 def get_file_modified_time(file_path):
     """
     Function returns the last modified time of the file in seconds
