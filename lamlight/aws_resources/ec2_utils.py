@@ -20,10 +20,10 @@ def get_subnet_id():
     """
     client = boto3.client('ec2', region_name=os.getenv('AWS_REGION'))
     subnets = client.describe_subnets()
-    trimmed_subnets_list = [{"SubnetId":subnet.get("SubnetId"),
-                             "VpcId":subnet["VpcId"],
+    trimmed_subnets_list = [{"SubnetId": subnet.get("SubnetId"),
+                             "VpcId": subnet["VpcId"],
                              "Tags":subnet["Tags"]} for subnet in subnets.get("Subnets")
-                           ]
+                            ]
     print "-----------------------------SELECT THE SUBNET---------------------------------"
     for subnet in trimmed_subnets_list:
         print "SUBNET ID = {}".format(subnet["SubnetId"])
@@ -47,9 +47,9 @@ def get_role():
     client = boto3.client('iam', region_name=os.getenv('AWS_REGION'))
     roles = client.list_roles()
 
-    trimed_roles_list = [{'RoleName' : role['RoleName'],
-                          'Arn' : role['Arn']} for role in roles.get('Roles')
-                        ]
+    trimed_roles_list = [{'RoleName': role['RoleName'],
+                          'Arn': role['Arn']} for role in roles.get('Roles')
+                         ]
     print "-----------------------------SELECT THE ROLE----------------------------------"
     for role in trimed_roles_list:
         print "RoleName = {}".format(role.get("RoleName"))
@@ -72,10 +72,10 @@ def get_security_group():
     """
     client = boto3.client('ec2', region_name=os.getenv('AWS_REGION'))
     security_groups = client.describe_security_groups()
-    trimmed_sg_list = [{"GroupName":sg["GroupName"],
+    trimmed_sg_list = [{"GroupName": sg["GroupName"],
                         "GroupId":sg["GroupId"]}
                        for sg in security_groups['SecurityGroups']
-                      ]
+                       ]
 
     print "-----------------------------SELECT THE SECURITY GROUP-------------------------"
     for sec_group in trimmed_sg_list:
