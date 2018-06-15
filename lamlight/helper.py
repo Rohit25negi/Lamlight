@@ -150,6 +150,11 @@ def requirement_changed():
     """
     This function finds the dependencies which are changed or added.
     It is used to cache the already installed dependencies.
+
+    Returns
+    --------
+    bool:
+        whether the requirement file is changed or not
     """
     configuration = read_configuration_file()
 
@@ -164,6 +169,13 @@ def requirement_changed():
 
 def update_last_modified_time(file_path):
     """
+    Function updates th last modified time of the file 
+    to the configuration file.
+
+    Parameters
+    -----------
+    file_path: str
+        file path
     """
     meta_data = os.stat(file_path)
     parser = read_configuration_file()
