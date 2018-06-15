@@ -159,7 +159,7 @@ def requirement_changed():
     req_recorded_mtime = configuration['PROJECT_DETAILS']['last_requirement_mtime']
     req_last_mtime = get_file_modified_time('requirements.txt')
 
-    return bool(req_last_mtime == req_recorded_mtime)
+    return bool(req_last_mtime-req_recorded_mtime)
 
 
 def get_file_modified_time(file_path):
