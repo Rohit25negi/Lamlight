@@ -170,7 +170,7 @@ def update_last_modified_time(file_path):
     if 'PROJECT_DETAILS' not in parser.sections():
         parser.add_section('PROJECT_DETAILS')
     parser.set('PROJECT_DETAILS', 'last_requirement_mtime',
-               meta_data[ST_MTIME])
+               str(meta_data[ST_MTIME]))
 
     parser.write(open(consts.LAMLIGHT_CONF, 'w'))
 
