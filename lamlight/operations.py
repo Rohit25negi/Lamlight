@@ -137,9 +137,6 @@ def build_package():
     if os.path.exists(consts.DEPENDENCY_DIR):
         shutil.rmtree(consts.DEPENDENCY_DIR)
 
-    if os.path.exists('.requirements.zip'):
-        os.remove('.requirements.zip')
-
     os.makedirs(consts.DEPENDENCY_DIR)
 
     try:
@@ -159,6 +156,9 @@ def install_dependencies():
     """
     function installs the requirements listed in requirements.txt
     """
+    
+    if os.path.exists('.requirements.zip'):
+        os.remove('.requirements.zip')
     command_list = list()
     command_list.append((os.system, (consts.PIP_UPGRADE,)))
     command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
