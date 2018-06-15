@@ -5,12 +5,13 @@ This modules provides the helper functions which can be useful throught the proj
 
 """
 import configparser
-from distutils.dir_util import copy_tree
 import os
 import shutil
+from stat import ST_MTIME
 import tempfile
 import urllib
 import zipfile
+from distutils.dir_util import copy_tree
 
 import constants as consts
 import errors
@@ -51,7 +52,7 @@ def remove_trees(path):
     for root, dirs, files in os.walk(path):
         for dir in dirs:
             path = root + os.sep + dir
-            if os.path.isdir(path) and 'tests' in dir: 
+            if os.path.isdir(path) and 'tests' in dir:
                 try:
                     shutil.rmtree(path)
                 except Exception:
@@ -89,9 +90,9 @@ def extract_zipped_code(zipped_code):
     zipped_code: str
            path to zip file which is to be extracted
     """
-    with zipfile.ZipFile(zipped_code,'r') as zip_ref:
+    with zipfile.ZipFile(zipped_code, 'r') as zip_ref:
         zip_ref.extractall()
-    
+
 
 def save_lamlight_conf(lambda_information):
     """
@@ -105,11 +106,27 @@ def save_lamlight_conf(lambda_information):
         dictionary which contains the information about a lambda function
     """
 
-    fout = open(consts.LAMLIGHT_CONF,'w')
+    fout = open(consts.LAMLIGHT_CONF, 'w')
     conf_parser = configparser.ConfigParser()
     conf_parser.add_section("LAMBDA_FUNCTION")
     conf_parser["LAMBDA_FUNCTION"]["funtionname"] = lambda_information['FunctionName']
     conf_parser.write(fout)
+
+
+def read_configuration_file():
+    """
+    Function reads the lamlight project configuration file
+
+    Returns
+    --------
+    parser: Configparser
+        object of Configparser containing the configuration
+        information of the lamlight project
+    """
+    parser = configparser.ConfigParser()
+    parser.read(consts.LAMLIGHT_CONF)
+    return parser
+
 
 def create_package(project_name):
     """
@@ -128,10 +145,33 @@ def create_package(project_name):
     else:
         raise errors.PackagingError(consts.SCAFFOLDING_ERROR)
 
-def get_changed_dependencies():
+
+def requirement_changed():
     """
     This function finds the dependencies which are changed or added.
     It is used to cache the already installed dependencies.
     """
-    #TODO caching dependencies
-    return None
+    configuration = read_configuration_file()
+
+    req_recorded_mtime = configuration['PROJECT_DETAILS']['last_requirement_mtime']
+    req_last_mtime = get_file_modified_time('requirements.txt')
+    return bool(req_last_mtime == req_recorded_mtime)
+
+
+def get_file_modified_time(file_path):
+    """
+    Function returns the last modified time of the file in seconds
+    from the refrence time.
+
+    Parameters
+    -----------
+    file_path: str
+        path of the file
+
+    Returns
+    --------
+    int:
+        number of seconds from the reference time
+    """
+    meta_data = os.stat(file_path)
+    return meta_data[ST_MTIME]

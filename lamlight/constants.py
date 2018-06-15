@@ -21,6 +21,7 @@ LAMBDA_ALREADY_EXISTS = " Lambda function with '{}' name already exists."
 DIRECTORY_ALREADY_EXISTS = 'Directory with name {} already exists'
 # console commands
 PIP_UPGRADE = "pip install --upgrade pip"
+
 PIP_REQ_INSTALL = "pip install --upgrade --no-cache-dir -r requirements.txt -t temp_dependencies/"
 ZIP_DEPENDENCY = 'cd temp_dependencies && zip -r ../.requirements.zip .'
 
