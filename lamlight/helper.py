@@ -156,8 +156,8 @@ def requirement_changed():
     if 'PROJECT_DETAILS' not in configuration.sections():
         return False
 
-    req_recorded_mtime = configuration['PROJECT_DETAILS']['last_requirement_mtime']
-    req_last_mtime = get_file_modified_time('requirements.txt')
+    req_recorded_mtime = int(configuration['PROJECT_DETAILS']['last_requirement_mtime'])
+    req_last_mtime = int(get_file_modified_time('requirements.txt'))
 
     return bool(req_last_mtime-req_recorded_mtime)
 
