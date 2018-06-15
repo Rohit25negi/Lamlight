@@ -14,7 +14,7 @@ import boto3
 import click
 
 import errors
-from logger import logger
+from logger import LOGGER
 import operations
 
 
@@ -37,7 +37,7 @@ def cli():
     my_session = boto3.session.Session()
     my_region = my_session.region_name
     if not my_region and not os.getenv('AWS_REGION'):
-        logger.error('No region specified set AWS_REGION to aws region')
+        LOGGER.error('No region specified set AWS_REGION to aws region')
         sys.exit(1)
 
 
@@ -60,9 +60,9 @@ def create(lambda_name, role, subnet_id, security_group,):
     try:
         operations.create_lambda(lambda_name, role, subnet_id, security_group)
     except (errors.PackagingError, errors.AWSError, errors.NoLamlightProject) as error:
-        logger.error(error.message)
+        LOGGER.error(error.message)
     except Exception as error:
-        logger.critical('Unknown error occured.')
+        LOGGER.critical('Unknown error occured.')
         traceback.print_exc()
 
 
@@ -75,9 +75,9 @@ def update(lambda_name):
     try:
         operations.update_lamda(lambda_name)
     except (errors.PackagingError, errors.AWSError, errors.NoLamlightProject) as error:
-        logger.error(error.message)
+        LOGGER.error(error.message)
     except Exception as error:
-        logger.critical('Unknown error occured.')
+        LOGGER.critical('Unknown error occured.')
         traceback.print_exc()
 
 
@@ -91,9 +91,9 @@ def connect(lambda_name):
     try:
         operations.connect_lambda(lambda_name)
     except (errors.PackagingError, errors.AWSError, errors.NoLamlightProject) as error:
-        logger.error(error.message)
+        LOGGER.error(error.message)
     except Exception as error:
-        logger.critical('Unknown error occured.')
+        LOGGER.critical('Unknown error occured.')
         traceback.print_exc()
 
 
@@ -107,9 +107,9 @@ def push():
         operations.push_code()
     except (errors.PackagingError, errors.AWSError, errors.NoLamlightProject) as error:
         print error
-        logger.error(error.message)
+        LOGGER.error(error.message)
     except Exception as error:
-        logger.critical('Unknown error occured.')
+        LOGGER.critical('Unknown error occured.')
         traceback.print_exc()
 
 
@@ -119,4 +119,4 @@ def test(type):
     """
     This command will be used to test the current project.(Not yet supported)
     """
-    logger.error('Not yet supported. But will be soon.')
+    LOGGER.error('Not yet supported. But will be soon.')

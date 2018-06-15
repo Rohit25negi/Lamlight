@@ -5,14 +5,14 @@ Module contains the  following functions:
     2) link_lambda: To link the zip present in s3 to lambda function.
     3) lambda_function_exists: To check the existance of the lambda function with name.
 """
-import os
 import configparser
+import os
 
 import boto3
 
-from lamlight.aws_resources import ec2_utils
-from lamlight import errors
 from lamlight import constants as consts
+from lamlight import errors, helper
+from lamlight.aws_resources import ec2_utils
 
 
 def default_lambda_details():
@@ -86,8 +86,7 @@ def link_lambda(bucket_name, s3_key):
 
     """
     client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
-    parser = configparser.ConfigParser()
-    parser.read(consts.LAMLIGHT_CONF)
+    parser = helper.read_configuration_file()
     client.update_function_code(FunctionName=parser['LAMBDA_FUNCTION']['funtionname'],
                                 S3Bucket=bucket_name, S3Key=s3_key)
 

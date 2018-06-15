@@ -23,7 +23,7 @@ from lamlight.aws_resources import s3_utils
 from lamlight import constants as consts
 from lamlight import errors
 from lamlight import helper as hlpr
-from lamlight.logger import logger
+from lamlight.logger import LOGGER
 
 
 def create_lambda(name, role, subnet_id, security_group):
@@ -45,22 +45,23 @@ def create_lambda(name, role, subnet_id, security_group):
     """
 
     if os.path.exists(name):
-        raise errors.BaseException(consts.DIRECTORY_ALREADY_EXISTS.format(name))
+        raise errors.BaseException(
+            consts.DIRECTORY_ALREADY_EXISTS.format(name))
 
     if lambda_utils.lambda_function_exists(name):
         raise errors.AWSError(
             consts.LAMBDA_ALREADY_EXISTS.format(name))
     os.mkdir(name)
-    logger.info('Creating boilderplate for lambda function.')
+    LOGGER.info('Creating boilderplate for lambda function.')
     hlpr.create_package(name)
 
-    logger.info('Building Zip.')
+    LOGGER.info('Building Zip.')
     os.chdir(name)
     zip_path = build_package()
-    logger.info('Creating lambda function.')
+    LOGGER.info('Creating lambda function.')
     lambda_info = lambda_utils.create_lambda_function(
         name, role, subnet_id, security_group, zip_path)
-    logger.info(
+    LOGGER.info(
         'lambda function created. You can start playing with your lambda')
     hlpr.save_lamlight_conf(lambda_info)
 
@@ -80,14 +81,14 @@ def update_lamda(lambda_name):
             raise errors.AWSError(
                 consts.NO_LAMBDA_FUNCTION.format(lambda_name))
 
-        logger.info('connecting to aws.')
+        LOGGER.info('connecting to aws.')
         client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
         lambda_information = client.get_function(FunctionName=lambda_name)
 
-        logger.info('downloading code base.')
+        LOGGER.info('downloading code base.')
         code_location = lambda_information['Code']['Location']
         download_file_path = hlpr.download_object(code_location)
-        logger.info('Extracting code.')
+        LOGGER.info('Extracting code.')
     except Exception as error:
         raise errors.AWSError(error.message)
     try:
@@ -112,11 +113,11 @@ def connect_lambda(lambda_name):
         if not lambda_utils.lambda_function_exists(lambda_name):
             raise errors.AWSError(
                 consts.NO_LAMBDA_FUNCTION.format(lambda_name))
-        logger.info('connecting to aws.')
+        LOGGER.info('connecting to aws.')
         client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
         lambda_information = client.get_function(FunctionName=lambda_name)
         hlpr.save_lamlight_conf(lambda_information['Configuration'])
-        logger.info(consts.CONNECT_TO_LAMBDA.format(lambda_name))
+        LOGGER.info(consts.CONNECT_TO_LAMBDA.format(lambda_name))
     except Exception as error:
         raise errors.PackagingError(error.message)
 
@@ -140,18 +141,11 @@ def build_package():
         os.remove('.requirements.zip')
 
     os.makedirs(consts.DEPENDENCY_DIR)
-    
-    #TODO adding caching
-    dependencies = hlpr.get_changed_dependencies()
 
-    command_list = list()
-    command_list.append((os.system, (consts.PIP_UPGRADE,)))
-    command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
-    command_list.append((hlpr.remove_trees, (consts.DEPENDENCY_DIR,)))
-    hlpr.run_dependent_commands(command_list)
     try:
-        os.system(consts.ZIP_DEPENDENCY)
-        shutil.rmtree(consts.DEPENDENCY_DIR)
+        if hlpr.requirement_changed():
+            install_dependencies()
+
         cwd = os.path.basename(os.getcwd())
         zip_path = "/tmp/{}".format(cwd)
         shutil.make_archive(zip_path, 'zip', '.')
@@ -159,6 +153,19 @@ def build_package():
     except Exception:
         raise errors.PackagingError(consts.PACKAGIN_ERROR)
     return zip_path
+
+
+def install_dependencies():
+    """
+    function installs the requirements listed in requirements.txt
+    """
+    command_list = list()
+    command_list.append((os.system, (consts.PIP_UPGRADE,)))
+    command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
+    command_list.append((hlpr.remove_trees, (consts.DEPENDENCY_DIR,)))
+    hlpr.run_dependent_commands(command_list)
+    os.system(consts.ZIP_DEPENDENCY)
+    shutil.rmtree(consts.DEPENDENCY_DIR)
 
 
 def push_code():
@@ -170,7 +177,7 @@ def push_code():
     if not os.path.exists(consts.LAMLIGHT_CONF):
         raise errors.NoLamlightProject(consts.NO_LAMLIGHT_PROJECT)
 
-    logger.info('Getting aws user identity')
+    LOGGER.info('Getting aws user identity')
     sts = boto3.client('sts', region_name=os.getenv('AWS_REGION'))
     account_id = sts.get_caller_identity().get('Account')
     my_session = boto3.session.Session()
@@ -182,11 +189,11 @@ def push_code():
     bucket_name = consts.BUCKET_NAME.format(account_id, my_region)
     s3_utils.create_bucket(bucket_name)
 
-    logger.info('building zip')
+    LOGGER.info('building zip')
     zip_path = build_package()
-    logger.info("uploading code base to S3")
+    LOGGER.info("uploading code base to S3")
     s3_utils.upload_to_s3(zip_path, bucket_name)
 
     s3_key = ntpath.basename(zip_path)
     lambda_utils.link_lambda(bucket_name, s3_key)
-    logger.info("Lambda updation complete")
+    LOGGER.info("Lambda updation complete")
