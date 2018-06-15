@@ -24,6 +24,7 @@ The problems/issues focused on:
 * Creating _boilerplate_ for AWS lambda function.
 * Live _upading_ existing AWS lambda function.
 * _Connecting_ existing project to AWS lambda function.
+* Cache build package
 * Single command to _push_ code to lambda function.
 
 ### Prerequisite
