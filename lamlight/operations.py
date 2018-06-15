@@ -140,7 +140,7 @@ def build_package():
     os.makedirs(consts.DEPENDENCY_DIR)
 
     try:
-        if hlpr.requirement_changed():
+        if not os.path.exists('.requirements.zip') or hlpr.requirement_changed():
             install_dependencies()
 
         cwd = os.path.basename(os.getcwd())
@@ -156,9 +156,8 @@ def install_dependencies():
     """
     function installs the requirements listed in requirements.txt
     """
-    
-    if os.path.exists('.requirements.zip'):
-        os.remove('.requirements.zip')
+
+    os.remove('.requirements.zip')
     command_list = list()
     command_list.append((os.system, (consts.PIP_UPGRADE,)))
     command_list.append((os.system, (consts.PIP_REQ_INSTALL,)))
