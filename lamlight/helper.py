@@ -159,7 +159,7 @@ def requirement_changed():
     configuration = read_configuration_file()
 
     if 'PROJECT_DETAILS' not in configuration.sections():
-        return False
+        return True
 
     req_recorded_mtime = int(configuration['PROJECT_DETAILS']['last_requirement_mtime'])
     req_last_mtime = int(get_file_modified_time('requirements.txt'))
