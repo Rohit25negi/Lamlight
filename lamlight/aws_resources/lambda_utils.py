@@ -52,19 +52,21 @@ def create_lambda_function(name, role, subnet_id, security_group, zip_path):
     :return:
     """
     try:
+        lambda_details = default_lambda_details()
+        #Role is must
         if not role:
-            role = ec2_utils.get_role()
-        if not subnet_id:
-            subnet_id = ec2_utils.get_subnet_id()
-        if not security_group:
-            security_group = ec2_utils.get_security_group()
+            lambda_details['Role'] = role
+            #role = ec2_utils.get_role()
+
+        if subnet_id and security_group:
+            lambda_details['VpcConfig'] = {'SubnetIds': [subnet_id], 
+                                           'SecurityGroupIds': [security_group]}
+            #subnet_id = ec2_utils.get_subnet_id()
+            #security_group = ec2_utils.get_security_group()
 
         client = boto3.client('lambda', region_name=os.getenv('AWS_REGION'))
-        lambda_details = default_lambda_details()
         lambda_details['FunctionName'] = name
-        lambda_details['Role'] = role
-        lambda_details['VpcConfig'] = {'SubnetIds': [
-            subnet_id], 'SecurityGroupIds': [security_group]}
+        
         lambda_details['Code'] = {'ZipFile': open(zip_path).read()}
         lambda_info = client.create_function(**lambda_details)
 
